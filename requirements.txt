@@ -1,0 +1,16 @@
+addict
+future
+lmdb
+opencv-python
+Pillow
+pyyaml
+requests
+scikit-image
+scipy
+tb-nightly
+yapf
+timm
+einops
+kornia
+easydict
+open_clip_torch

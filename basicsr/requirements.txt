@@ -1,0 +1,6 @@
+basicsr
+numpy
+opencv-python
+requests
+torch
+torchvision
