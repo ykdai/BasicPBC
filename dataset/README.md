@@ -1,45 +1,36 @@
-# PaintBucket Character Dataset
+# PaintBucket-Character Dataset
 
 <img src="../assets/fig3.jpg" width="100%"/>
 
-We developed a unique dataset, referred to as
-PaintBucket-Character. This dataset includes rendered line
+We introduce an innovative dataset named **PaintBucket-Character**. This dataset includes rendered line
 arts alongside their colorized counterparts, featuring various 3D characters including both Japanese and Western cartoon styles.
 
 ### Data Download
 
-Dataset can be downloaded using the following links.
+Dataset can be downloaded using the following links. 
 
-Note that due to copyright issues, we do not provide download links for the Real dataset. Please contact us if you want to use the dataset for testing purposes only and not for any commercial activities.
+|                                  |                         Google Drive                         |                        Baidu Netdisk                         | Number       | Description                                                  |
+| :------------------------------- | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------- | ------------------------------------------------------------ |
+| PaintBucket-Character Train/Test | [link](https://drive.google.com/file/d/1gIJVKyeIu4PQshZnHG6TWj5kSZjnMb2_/view?usp=sharing) | [link](https://pan.baidu.com/s/12AMfqwlPF-7R30RWRdUBfg?pwd=cvpr) | 11,345/3,000 | 3D rendered frames for training and testing. Our dataset is only in 2GB, feel feel to download it and have fun~ |
+| PaintBucket-Real Test            |                              /                               |                              /                               | 200          | Hand-drawn frames for testing.                               |
 
-|     | Baidu Netdisk | Google Drive | Number | Description|
-| :--- | :--: | :----: | :---- | ---- |
-| PaintBucket Character Train | [link](TODO) | [link](TODO) | 11,345 | 3D rendered frames for training |
-| PaintBucket Character Test | [link](TODO) | [link](TODO) | 3,000 | 3D rendered frames for testing |
-| PaintBucket Character Real | - | - | 200 | hand drawn frames for real scenario testing |
+Due to copyright issues, we do not provide download links for the real hand-drawn dataset. Please contact us through the e-mail if you want to use it. These hand-drawn frames are only for evaluation and not for any commercial activities. 
 
-It is recommended to symlink the dataset root to `BasicPBC/data`.
-If your folder structure is different, you may need to change the corresponding paths in config files.
+After downloading the dataset, please put the it in `BasicPBC/dataset`. If your folder structure is different, you may need to change the corresponding paths in config files.
 
 ```
 BasicPBC
-├── assets
-├── basicsr
-├── data
-│   ├── PaintBucket_Char
-├── experiments
-├── options
-├── paint
-├── raft
-├── results
-├── scripts
-├── test_data
-│   ├── PaintBucket_Char
+├── dataset
+    ├── train
+        ├── PaintBucket_Char
+    ├── test
+        ├── PaintBucket_Char
+        ├── PaintBucket_Real
 ```
 
-### PaintBucket Character Train
+### PaintBucket-Character Train
 
-This dataset comprises 11,345 3D rendered frames for training. It includes 12 characters each in a seperate folder. Within a character's folder, there are 6 sub folders: **gt**, **json_color**, **json_index**, **label**, **line** and **seg**.
+The training dataset comprises 11,345 3D rendered frames of 12 characters in separate folders.
 
 ```
 BasicPBC
@@ -65,11 +56,24 @@ BasicPBC
 │   │   ├── TheBoss
 ```
 
-- **gt**: ground truth colorized frames. Use *paint.utils.read_img_2_np* to read.
+- **gt**: Colorized Ground truth of the frames. The image is a 4-channel RGBA image with transparent background, please use `paint.utils.read_img_2_np` to load it.
 
 <img src="../assets/gt0242.png" width="40%"/>
 
-- **json_color**: for each segment (line-enclosed region), gives ground truth color in RGBA values. Use *paint.utils.load_json* to read. 
+- **label**: Index label for different regions of the character. Each region shares the same index in all frames. Index can be calculated using `index=R*256^2+G*256+B`. For the transparent region, index is set as -1. Please use `paint.utils.read_seg_2_np` to read it as a 2D numpy array.
+
+<img src="../assets/label0242.png" width="40%"/>
+
+- **line**: Line-art frames. They are binarized 4-channel images with black lines and transparent background. Please use `paint.utils.read_img_2_np` to load it.
+
+<img src="../assets/line0242.png" width="40%"/>
+
+- **seg**: Each segment (line-enclosed region) 's serial number. (e.g. segment No.42's color is [0,0,42].) Please use `paint.utils.read_seg_2_np` to read it as a 2D numpy array.
+
+<img src="../assets/seg0242.png" width="40%"/>
+
+- **json_color**: Each segment (line-enclosed region)'s RGBA value. Please use `paint.utils.load_json` to load it. 
+
 ```json
 {
     "1": [0, 0, 0, 0],
@@ -79,8 +83,8 @@ BasicPBC
 }
 ```
 
-- **json_index**: for each segment, gives number of pixels and corresponding **label**'s index.
-<br> e.g. "2": [16, 27] means for segment 2 its corresponding **label** is 27 and it has 16 pixels. (segment 1 is always the background and it is not included in the **label**.) <br>
+- **json_index**: Each segment (line-enclosed region)'s number of pixels and it corresponding label's index.
+   e.g. "2": [16, 27] means that segment No.2's corresponding label is index 27 and it has 16 pixels. (segment 1 is always the background with index -1.) 
 
 ```json
 {
@@ -91,23 +95,13 @@ BasicPBC
 }
 ```
 
-- **label**: TODO
 
-<img src="../assets/label0242.png" width="40%"/>
 
-- **line**: line-art frames. They are binarized 3-channel images. Use *paint.utils.read_img_2_np* to read.
-
-<img src="../assets/line0242.png" width="40%"/>
-
-- **seg**: give each segment an index using RGB value. e.g. segment 42 has color (0,0,42). Use *paint.utils.read_seg_2_np* to read as a 2D numpy array.
-
-<img src="../assets/seg0242.png" width="40%"/>
-
-### PaintBucket Character Test
+### PaintBucket-Character Test
 
 This dataset contains 3,000 3D rendered frames of 10 characters for testing. Folder structure is almost the same as training set except that:
 
-- **seg**: combines contents of **seg** and **json_color** in training set. png files give each segment an index. json file contains ground truth color for each segment.
+- **seg**: combines contents of **seg** and **json_color** in training set. **png** files give each segment an index. **json** file contains ground truth color for each segment.
 
 ```
 BasicPBC
@@ -131,7 +125,7 @@ BasicPBC
 │   │   ├── Ty
 ```
 
-### PaintBucket Character Real
+### PaintBucket-Real
 
 This dataset has 200 hand-drawn frames from 20 short clips.
 
@@ -148,18 +142,18 @@ BasicPBC
 │   │   ├── idol
 │   │   ├── jumpinggirl
 │   │   ├── kyogirl
-│   │   ├── laughing_girl
-│   │   ├── open_eye
+│   │   ├── laughinggirl
+│   │   ├── closeeye
 │   │   ├── robothand
 │   │   ├── runninggirl
 │   │   ├── selfprotectboy
 │   │   ├── shockinggirl
 │   │   ├── sittinggirl
-│   │   ├── smiling_girl
+│   │   ├── smilinggirl
 │   │   ├── standupboy
 │   │   ├── strongman
-│   │   ├── turning_around_boy
-│   │   ├── turning_around_girl
+│   │   ├── turningaroundboy
+│   │   ├── turningaroundgirl
 │   │   ├── typing
 │   │   ├── witcher
 ```

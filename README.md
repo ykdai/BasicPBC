@@ -1,4 +1,4 @@
-# Segment matching based Paint Bucket Colorization
+# Learning Inclusion Matching for Animation Paint Bucket Colorization
 
 [Project Page](https://ykdai.github.io/projects/InclusionMatching) | [Video](https://www.youtube.com/watch?v=nNnPUItGvSo)
 
@@ -18,8 +18,7 @@ This repository provides the official implementation for the following paper:
 
 ### BasicPBC
 Colorizing line art is a pivotal task in the production of hand-drawn cel animation. 
-In this work, we introduce a new learning-based inclusion matching pipeline, which directs the network to comprehend the inclusion relationships between segments.
-To facilitate the training of our network, we also develope a unique dataset. This dataset includes rendered line arts alongside their colorized counterparts, featuring various 3D characters.
+In this work, we introduce a new learning-based inclusion matching pipeline, which directs the network to comprehend the inclusion relationships between segments. To facilitate the training of our network, we also propose a unique dataset **PaintBucket-Character**. This dataset includes rendered line arts alongside their colorized counterparts, featuring various 3D characters.
 
 ### Update
 - **2024.03.29**: This repo is created.
@@ -48,66 +47,65 @@ To facilitate the training of our network, we also develope a unique dataset. Th
 
 ### Data Download
 
-Dataset can be downloaded using the following links.
+The details of our dataset can be found at [this page](https://github.com/ykdai/BasicPBC/tree/main/dataset). Dataset can be downloaded using the following links. 
 
-Note that due to copyright issues, we do not provide download links for the Real dataset. Please contact us if you want to use the dataset for testing purposes only and not for any commercial activities.
-
-|     | Baidu Netdisk | Google Drive | Number | Description|
+|     | Google Drive | Baidu Netdisk | Number | Description|
 | :--- | :--: | :----: | :---- | ---- |
-| PaintBucket Character Train | [link](TODO) | [link](TODO) | 11,345 | 3D rendered frames for training |
-| PaintBucket Character Test | [link](TODO) | [link](TODO) | 3,000 | 3D rendered frames for testing |
-| PaintBucket Character Real | - | - | 200 | hand-drawn frames for real scenario testing |
+| PaintBucket-Character Train/Test | [link](https://drive.google.com/file/d/1gIJVKyeIu4PQshZnHG6TWj5kSZjnMb2_/view?usp=sharing) | [link](https://pan.baidu.com/s/12AMfqwlPF-7R30RWRdUBfg?pwd=cvpr) | 11,345/3,000 | 3D rendered frames for training and testing. Our dataset is a mere 2GB in size, so feel free to download it and enjoy exploring. 😆😆 |
+| PaintBucket-Real Test            |                              /                               |                              /                               | 200          | Hand-drawn frames for testing.                               |
 
+Due to copyright issues, we do not provide download links for the real hand-drawn dataset. Please contact us through the e-mail if you want to use it. These hand-drawn frames are only for evaluation and not for any commercial activities. 
 
 ### Pretrained Model
 
-You can download the pretrained checkpoints from the following links. Please place it under the `experiments` folder and unzip it, then you can run the `basicsr/test.py` for inference. 
+You can download the pretrained checkpoints from the following links. Please place it under the `ckpt` folder and unzip it, then you can run the `basicsr/test.py` for inference. 
 
-|                        Baidu Netdisk                         |                         Google Drive                         |
-| :----------------------------------------------------------: | :----------------------------------------------------------: |
-| [link](https://pan.baidu.com/s/1EJSYIbbQe5SZYiNIcvrmNQ?pwd=xui4) | [link](https://drive.google.com/file/d/1uFzIBNxfq-82GTBQZ_5EE9jgDh79HVLy/view?usp=sharing) |
+|  Google Drive   |  Baidu Netdisk  |
+| :-------------: | :-------------: |
+| [link]() (TODO) | [link]() (TODO) |
 
 ### Model Inference
 To estimate the colorized frames with our checkpoint trained on PaintBucket-Character, you can run the `basicsr/test.py` by using:
 ```bash
-python basicsr/test.py -opt options/test/antunetclip6ch_raftdcn_pbcls_adjmerge_sep012_shuffle_option.yml
+python basicsr/test.py -opt options/test/basicpbc_pbch_test_option.yml
 ```
-Find visualize results under `results/`.
+The colorized results will be saved at `results/`.
 
-To inference on your own data, put frame clip folder under `test_data/user_clips/`. The clip folder should contain gt of the 1st frame and line arts of all frames.
+To inference on your own data, put your animation clips under `dataset/test/your_data/`. The clip folder should contain the colorized `gt` of the 1st frame and `line` of all frames.
 ```
-├── test_data
-    ├── user_clips
-        ├── put_your_clip_here
-            ├── gt
-                ├── 0000.png
-            ├── line
-                ├── 0000.png
-                ├── 0001.png
-                ├── ...
+├── dataset 
+    ├── test
+        ├── your_data
+            ├── anime_clip1
+                ├── gt
+                    ├── 0000.png
+                ├── line
+                    ├── 0000.png
+                    ├── 0001.png
+                    ├── ...
 ```
 Run the `inference_line_frames.py` by using:
 ```bash
-python inference_line_frames.py --folder_path test_data/user_clips
+python inference_line_frames.py --folder_path dataset/test/your_data/
 ```
-Find results under `results/user_clips/`.
+Find results under `results/your_data/`.
 
 ### Model Training
 
 **Training with single GPU**
 
-To train a model with your own data/model, you can edit the `options/train/antunetclip6ch_raftdcn_pbcls_adjmerge_sep012_shuffle_option.yml` and run the following codes. You can also add `--debug` argument to start the debug mode:
+To train a model with your own data/model, you can edit the `options/train/basicpbc_pbch_train_option.yml` and run the following codes. 
 
 ```bash
-python basicsr/train.py -opt options/train/antunetclip6ch_raftdcn_pbcls_adjmerge_sep012_shuffle_option.yml
+python basicsr/train.py -opt options/train/basicpbc_pbch_train_option.yml
 ```
 
 **Training with multiple GPU**
 
-You can run the following command for multiple GPU tranining:
+You can run the following command for multiple GPU training:
 
 ```bash
-CUDA_VISIBLE_DEVICES=0,1 bash scripts/dist_train.sh 2 options/train/antunetclip6ch_raftdcn_pbcls_adjmerge_sep012_shuffle_option.yml
+CUDA_VISIBLE_DEVICES=0,1 bash scripts/dist_train.sh 2 options/train/basicpbc_pbch_train_option.yml
 ```
 
 ### BasicPBC structure
@@ -123,8 +121,12 @@ CUDA_VISIBLE_DEVICES=0,1 bash scripts/dist_train.sh 2 options/train/antunetclip6
         ├── models
         ├── ops
         ├── utils
-    ├── data
-    │   ├── PaintBucket_Char
+    ├── dataset
+    	├── train
+	    	├── PaintBucket_Char
+        ├── test
+        	├── PaintBucket_Char
+        	├── PaintBucket_Real
     ├── experiments
     ├── options
         ├── test
@@ -133,9 +135,6 @@ CUDA_VISIBLE_DEVICES=0,1 bash scripts/dist_train.sh 2 options/train/antunetclip6
     ├── raft
     ├── results
     ├── scripts
-    ├── test_data
-    │   ├── PaintBucket_Char
-    │   ├── PaintBucket_Real
 ```
 
 ### License

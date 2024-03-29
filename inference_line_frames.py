@@ -61,7 +61,7 @@ def load_params(model_path):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--folder_path", type=str, default="test_data/user_clips")
+    parser.add_argument("--folder_path", type=str, default="dataset/test/your_data")
     args = parser.parse_args()
 
     path = args.folder_path
@@ -92,5 +92,5 @@ if __name__ == "__main__":
     dataloader = data.DataLoader(dataset, batch_size=1)
 
     model_inference = ModelInference(model, dataloader)
-    save_path = path.replace("test_data", "results")
+    save_path = path.replace("dataset/test", "results")
     model_inference.inference_frame_by_frame(save_path, accu=True, self_prop=True)
