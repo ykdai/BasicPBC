@@ -1,6 +1,6 @@
 # PaintBucket Character Dataset
 
-<img src="assets/fig3.jpg" width="400px"/>
+<img src="../assets/fig3.jpg" width="100%"/>
 
 We developed a unique dataset, referred to as
 PaintBucket-Character. This dataset includes rendered line
@@ -67,7 +67,7 @@ BasicPBC
 
 - **gt**: ground truth colorized frames. Use *paint.utils.read_img_2_np* to read.
 
-<img src="assets/gt0242.png" width="400px"/>
+<img src="../assets/gt0242.png" width="40%"/>
 
 - **json_color**: for each segment (line-enclosed region), gives ground truth color in RGBA values. Use *paint.utils.load_json* to read. 
 ```json
@@ -93,15 +93,15 @@ BasicPBC
 
 - **label**: TODO
 
-<img src="assets/label0242.png" width="400px"/>
+<img src="../assets/label0242.png" width="40%"/>
 
 - **line**: line-art frames. They are binarized 3-channel images. Use *paint.utils.read_img_2_np* to read.
 
-<img src="assets/line0242.png" width="400px"/>
+<img src="../assets/line0242.png" width="40%"/>
 
 - **seg**: give each segment an index using RGB value. e.g. segment 42 has color (0,0,42). Use *paint.utils.read_seg_2_np* to read as a 2D numpy array.
 
-<img src="assets/seg0242.png" width="400px"/>
+<img src="../assets/seg0242.png" width="40%"/>
 
 ### PaintBucket Character Test
 
