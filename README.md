@@ -62,7 +62,9 @@ You can download the pretrained checkpoints from the following links. Please pla
 
 |  Google Drive   |  Baidu Netdisk  |
 | :-------------: | :-------------: |
-| [link]() (TODO) | [link]() (TODO) |
+| [link](https://drive.google.com/file/d/1QOUaulX9-mZo5wyKpWw_9QUKkRwBwMU2/view?usp=sharing)  | [link](https://pan.baidu.com/s/1yRN1W5HoaDfd84sHGhIpcw?pwd=cvpr) |
+
+We also have plans to release a lightweight model, please stay tuned!🤗
 
 ### Model Inference
 To estimate the colorized frames with our checkpoint trained on PaintBucket-Character, you can run the `basicsr/test.py` by using:
