@@ -501,7 +501,7 @@ def transport(scores, alpha):
 
 
 @ARCH_REGISTRY.register()
-class AnT_unet_raft_dcn(nn.Module):
+class BasicPBC(nn.Module):
     """SuperGlue feature matching middle-end. A new hard-coded self-attention will be added to the transformer.
     This part is an AnT module with the hard coded transformer.
 
