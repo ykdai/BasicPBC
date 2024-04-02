@@ -33,8 +33,8 @@ BasicPBC
 The training dataset comprises 11,345 3D rendered frames of 12 characters in separate folders.
 
 ```
-BasicPBC
-├── data
+dataset
+├── train
 │   ├── PaintBucket_Char
 │   │   ├── Abe
 │   │   │   ├── gt
@@ -104,8 +104,9 @@ This dataset contains 3,000 3D rendered frames of 10 characters for testing. Fol
 - **seg**: combines contents of **seg** and **json_color** in training set. **png** files give each segment an index. **json** file contains ground truth color for each segment.
 
 ```
-BasicPBC
-├── test_data
+dataset
+├── train
+├── test
 │   ├── PaintBucket_Char
 │   │   ├── amy
 │   │   │   ├── gt
@@ -130,8 +131,9 @@ BasicPBC
 This dataset has 200 hand-drawn frames from 20 short clips.
 
 ```
-BasicPBC
-├── test_data
+dataset
+├── train
+├── test
 │   ├── PaintBucket_Real
 │   │   ├── dog
 │   │   │   ├── gt

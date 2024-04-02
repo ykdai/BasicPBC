@@ -1,5 +1,5 @@
 # general settings
-name: basicpbc_pbch_train
+name: basicpbc_pbch_test
 model_type: PBCModel
 scale: 1
 num_gpu: 1  # set num_gpu: 0 for cpu mode
@@ -10,7 +10,7 @@ datasets:
   val:
     name: PaintBucket_Char
     type: PaintBucketSegMat
-    root: test_data/PaintBucket_Char/
+    root: dataset/test/PaintBucket_Char/
     dstype: contour
     split: test
     is_png_seg: true
