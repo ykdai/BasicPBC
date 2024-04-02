@@ -21,7 +21,12 @@ Colorizing line art is a pivotal task in the production of hand-drawn cel animat
 In this work, we introduce a new learning-based inclusion matching pipeline, which directs the network to comprehend the inclusion relationships between segments. To facilitate the training of our network, we also propose a unique dataset **PaintBucket-Character**. This dataset includes rendered line arts alongside their colorized counterparts, featuring various 3D characters.
 
 ### Update
+- **2024.03.30**: The checkpoint and training code of our BasicPBC are released.
 - **2024.03.29**: This repo is created.
+
+### TODO
+- [ ] Add trapped-ball segmentation module for unclosed line arts inference.
+- [ ] Add a lightweight BasicPBC which can process images in 2K resolution without encountering Out-Of-Memory (OOM) error on 8GB RAM GPU.
 
 ### Installation
 
