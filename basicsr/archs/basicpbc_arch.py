@@ -529,8 +529,6 @@ class BasicPBC(nn.Module):
         descriptor_dim=128,
         keypoint_encoder=[32, 64, 128],
         GNN_layer_num=9,
-        sinkhorn_iterations=100,
-        match_threshold=0.2,
         use_clip=False,
     ):
         super().__init__()
@@ -541,8 +539,6 @@ class BasicPBC(nn.Module):
         config.keypoint_encoder = keypoint_encoder
         config.GNN_layers_num = GNN_layer_num
         config.GNN_layers = ["self", "cross"] * GNN_layer_num
-        config.sinkhorn_iterations = sinkhorn_iterations
-        config.match_threshold = match_threshold
         config.use_clip = use_clip
 
         self.config = config

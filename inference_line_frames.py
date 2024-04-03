@@ -73,8 +73,6 @@ if __name__ == "__main__":
         descriptor_dim=128,
         keypoint_encoder=[32, 64, 128],
         GNN_layer_num=9,
-        sinkhorn_iterations=100,
-        match_threshold=0.2,
         use_clip=True,
     )
     model = model.cuda()

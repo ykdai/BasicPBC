@@ -43,8 +43,6 @@ network_g:
   descriptor_dim: 128
   keypoint_encoder: [32, 64, 128]
   GNN_layer_num: 9
-  sinkhorn_iterations: 100
-  match_threshold: 0.2
   use_clip: True
 
 # path
