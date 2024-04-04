@@ -634,7 +634,6 @@ class BasicPBC(nn.Module):
 
         scores = transport(scores, self.bin_score)
 
-        weights = data["numpt"].float()  # .cuda()
         all_matches_origin = all_matches.clone() if all_matches is not None else None
 
         if all_matches is not None:
@@ -666,19 +665,13 @@ class BasicPBC(nn.Module):
                 "invalid_accuracy": -1,
             }
         else:
-            accuracy = (all_matches_origin[0] == indices0[0]).sum() / len(all_matches_origin[0])
-
-            area_accuracy = torch.tensor(
-                [(data["segment"] == ii + 1).sum() for ii in torch.arange(0, all_matches_origin[0].shape[0])[all_matches_origin[0] == indices0[0]]]
-            ).sum() / (weights.sum() * 1.0)
-
-            valid_accuracy = ((all_matches_origin[0] == indices0[0]) & (all_matches_origin[0] != -1)).sum() / (all_matches_origin[0] != -1).sum()
-
-            invalid_accuracy = (
-                (((all_matches_origin[0] == indices0[0]) & (all_matches_origin[0] == -1)).sum() / (all_matches_origin[0] == -1).sum()).item()
-                if (all_matches_origin[0] == -1).sum() > 0
-                else None
-            )
+            is_correct = all_matches_origin[0] == indices0[0]
+            accuracy = (is_correct.sum() / len(all_matches_origin[0])).item()
+            correct_indices = torch.arange(len(all_matches_origin[0]), device=is_correct.device)[is_correct]
+            area_accuracy = (torch.tensor([(data["segment"] == idx + 1).sum() for idx in correct_indices]).sum() / data["numpt"].sum()).item()
+            is_valid = all_matches_origin[0] != -1
+            valid_accuracy = ((is_correct & is_valid).sum() / is_valid.sum()).item()
+            invalid_accuracy = ((is_correct & ~is_valid).sum() / (~is_valid).sum()).item() if (~is_valid).sum() > 0 else None
 
             return {
                 "match_scores": scores[:, :-1, :][0],
@@ -686,8 +679,8 @@ class BasicPBC(nn.Module):
                 "matching_scores0": mscores0[0],
                 "loss": loss,
                 "skip_train": False,
-                "accuracy": accuracy.item(),
-                "area_accuracy": area_accuracy.item(),
-                "valid_accuracy": valid_accuracy.item(),
+                "accuracy": accuracy,
+                "area_accuracy": area_accuracy,
+                "valid_accuracy": valid_accuracy,
                 "invalid_accuracy": invalid_accuracy,
             }
