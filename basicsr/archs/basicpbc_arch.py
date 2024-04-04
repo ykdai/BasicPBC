@@ -405,9 +405,13 @@ class SegmentDescriptor(nn.Module):
         self.encoder = UNet(enc_dim, ch_in, use_clip)
 
     def forward(self, img, seg, line=None, use_offset=False):
+        h, w = img.size()[-2:]
+        img = F.interpolate(img, (640, 640), mode="bilinear", align_corners=False)
+        if line is not None:
+            line = F.interpolate(line, (640, 640), mode="nearest")
         x = self.encoder(img, line, use_offset)
-        n, c, h, w = x.size()
-        assert (h, w) == img.size()[2:4]
+        x = F.interpolate(x, (h, w), mode="bilinear", align_corners=False)
+        n, c, nh, nw = x.size()
         return super_pixel_pooling(x.view(n, c, -1), seg.view(-1).long(), reduce="mean")
         # here return size is [1]xCx|Seg|
 
