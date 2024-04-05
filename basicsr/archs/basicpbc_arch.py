@@ -112,7 +112,7 @@ def normalize_keypoints(kpts, image_shape):
 
 
 class CLIPEncoder(nn.Module):
-    def __init__(self, freeze=True):
+    def __init__(self, freeze=True, resolution=None):
         super().__init__()
         clip_encoder, _, self.preprocess = open_clip.create_model_and_transforms("convnext_large_d_320")
         # We just assume preprocess is the same as our proprocess
@@ -124,9 +124,11 @@ class CLIPEncoder(nn.Module):
         if freeze:
             for param in self.parameters():
                 param.requires_grad = False
+        self.resolution = resolution
 
     def forward(self, x):
-        x = F.interpolate(x, (320, 320), mode="bilinear", align_corners=False)
+        if self.resolution:
+            x = F.interpolate(x, self.resolution, mode="bilinear", align_corners=False)
         x = self.visual_encoder(x)
         return x.detach()
 
@@ -299,7 +301,7 @@ class DeformableConv2d(nn.Module):
 
 
 class UNet(nn.Module):
-    def __init__(self, enc_dim, ch_in=3, use_clip=False, bins=[1, 2, 3, 6]):
+    def __init__(self, enc_dim, ch_in=3, use_clip=False, clip_resolution=None):
         super(UNet, self).__init__()
 
         self.use_clip = use_clip
@@ -314,7 +316,7 @@ class UNet(nn.Module):
         self.Conv4 = conv_block(ch_in=256, ch_out=512)
 
         if use_clip:
-            self.clip = CLIPEncoder(freeze=True)
+            self.clip = CLIPEncoder(freeze=True, resolution=clip_resolution)
             self.fuse = nn.Sequential(
                 nn.Conv2d(512 + 384, 512, kernel_size=3, padding=1, bias=False),
                 nn.PReLU(),
@@ -400,15 +402,16 @@ class UNet(nn.Module):
 class SegmentDescriptor(nn.Module):
     """Joint encoding of visual appearance and location using MLPs"""
 
-    def __init__(self, enc_dim, ch_in=3, use_clip=False):
+    def __init__(self, enc_dim, ch_in=3, use_clip=False, encoder_resolution=None, clip_resolution=None):
         super().__init__()
-        self.encoder = UNet(enc_dim, ch_in, use_clip)
+        self.encoder_resolution = encoder_resolution
+        self.encoder = UNet(enc_dim, ch_in, use_clip, clip_resolution)
 
     def forward(self, img, seg, line=None, use_offset=False):
         h, w = img.size()[-2:]
-        img = F.interpolate(img, (640, 640), mode="bilinear", align_corners=False)
-        if line is not None:
-            line = F.interpolate(line, (640, 640), mode="nearest")
+        if self.encoder_resolution:
+            img = F.interpolate(img, self.encoder_resolution, mode="bilinear", align_corners=False)
+            line = F.interpolate(line, self.encoder_resolution, mode="nearest") if line is not None else None
         x = self.encoder(img, line, use_offset)
         x = F.interpolate(x, (h, w), mode="bilinear", align_corners=False)
         n, c, nh, nw = x.size()
@@ -534,6 +537,9 @@ class BasicPBC(nn.Module):
         keypoint_encoder=[32, 64, 128],
         GNN_layer_num=9,
         use_clip=False,
+        encoder_resolution=None,
+        raft_resolution=None,
+        clip_resolution=(320, 320),
     ):
         super().__init__()
 
@@ -544,6 +550,9 @@ class BasicPBC(nn.Module):
         config.GNN_layers_num = GNN_layer_num
         config.GNN_layers = ["self", "cross"] * GNN_layer_num
         config.use_clip = use_clip
+        config.encoder_resolution = encoder_resolution
+        config.raft_resolution = raft_resolution
+        config.clip_resolution = clip_resolution
 
         self.config = config
 
@@ -553,7 +562,6 @@ class BasicPBC(nn.Module):
 
         args = {
             "mixed_precision": False,
-            "alternate_corr": False,
             "small": False,
             "ckpt": "raft/ckpt/raft-animerun-v2-ft_again.pth",
             "freeze": True,
@@ -568,7 +576,9 @@ class BasicPBC(nn.Module):
 
         bin_score = torch.nn.Parameter(torch.tensor(1.0))
         self.register_parameter("bin_score", bin_score)
-        self.segment_desc = SegmentDescriptor(self.config.descriptor_dim, self.config.ch_in, self.config.use_clip)
+        self.segment_desc = SegmentDescriptor(
+            self.config.descriptor_dim, self.config.ch_in, self.config.use_clip, self.config.encoder_resolution, self.config.clip_resolution
+        )
 
     def forward(self, data):
         """Run SuperGlue on a pair of keypoints and descriptors"""
@@ -583,14 +593,20 @@ class BasicPBC(nn.Module):
                 "skip_train": True,
             }
 
+        line, line_ref, color_ref = data["line"], data["line_ref"], data["recolorized_img"]
+        h, w = line.shape[-2:]
+        if self.config.raft_resolution:
+            line = F.interpolate(line, self.config.raft_resolution, mode="bilinear", align_corners=False)
+            line_ref = F.interpolate(line_ref, self.config.raft_resolution, mode="bilinear", align_corners=False)
+            color_ref = F.interpolate(color_ref, self.config.raft_resolution, mode="bilinear", align_corners=False)
         self.raft.eval()
-        _, flow_up = self.raft(data["line"], data["line_ref"], iters=20, test_mode=True)
-        recolorized_label = data["recolorized_img"]
-        warpped_img = flow_warp(recolorized_label, flow_up.permute(0, 2, 3, 1).detach(), "nearest")
+        _, flow_up = self.raft(line, line_ref, iters=20, test_mode=True)
+        warpped_img = flow_warp(color_ref, flow_up.permute(0, 2, 3, 1).detach(), "nearest")
+        warpped_img = F.interpolate(warpped_img, (h, w), mode="bilinear", align_corners=False)
 
         if self.config.ch_in == 6:
             warpped_target_img = torch.cat((warpped_img, data["line"]), dim=1)
-            warpped_ref_img = torch.cat((recolorized_label, data["line_ref"]), dim=1)
+            warpped_ref_img = torch.cat((data["recolorized_img"], data["line_ref"]), dim=1)
         else:
             assert False, "Input channel only supports 6 with 3 as line and 3 as color."
         if self.config.use_clip:
