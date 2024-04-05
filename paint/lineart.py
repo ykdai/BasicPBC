@@ -1,12 +1,12 @@
-import json
+import cv2
 import numpy as np
 import os
-from glob import glob
-from PIL import Image
-from skimage import color, img_as_ubyte, io, measure, morphology, transform
-from tqdm import tqdm
+from skimage import measure, morphology
 
-from paint.utils import labelpng_2_np, np_2_labelpng, generate_random_colors
+from linefiller.linefiller.thinning import thinning
+from linefiller.linefiller.trappedball_fill import build_fill_map, flood_fill_multi, mark_fill, merge_fill, show_fill_map, trapped_ball_fill_multi
+from paint.utils import generate_random_colors, np_2_labelpng
+
 
 class LineArt:
     def __init__(self, lineart_img, colorbook=None, new_colorbook=None):
@@ -130,3 +130,38 @@ class LineArt:
                 assert False, "This format is not supported."
         except Exception as e:
             print(f"Error while saving the label image: {e}")
+
+
+def trappedball_fill(img_path, save_path, radius=4, contour=False):
+
+    im = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+    ret, binary = cv2.threshold(im, 220, 255, cv2.THRESH_BINARY)
+
+    fills = []
+    result = binary
+    radius = max(4, radius)
+
+    fill = trapped_ball_fill_multi(result, radius, method="max")
+    fills += fill
+    result = mark_fill(result, fill)
+
+    fill = trapped_ball_fill_multi(result, radius // 2, method=None)
+    fills += fill
+    result = mark_fill(result, fill)
+
+    fill = trapped_ball_fill_multi(result, radius // 4, method=None)
+    fills += fill
+    result = mark_fill(result, fill)
+
+    fill = flood_fill_multi(result)
+    fills += fill
+
+    fillmap = build_fill_map(result, fills)
+    # cv2.imwrite("tmp/fills.png", show_fill_map(fillmap))
+
+    fillmap = merge_fill(fillmap)
+
+    if contour:
+        cv2.imwrite(save_path, show_fill_map(fillmap))
+    else:
+        cv2.imwrite(save_path, show_fill_map(thinning(fillmap)))
