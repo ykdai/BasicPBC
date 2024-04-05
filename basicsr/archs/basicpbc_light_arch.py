@@ -181,9 +181,25 @@ class CLIPEncoder(nn.Module):
                 param.requires_grad = False
 
     def forward(self, x):
-        x = F.interpolate(x, (320, 320), mode="bilinear", align_corners=False)
         x = self.visual_encoder(x)
         return x.detach()
+
+
+class ClipFeatureExtracter(nn.Module):
+    def __init__(self, input_channels, enc_dim):
+        super().__init__()
+        self.input_channels = input_channels
+        self.clip = CLIPEncoder(freeze=True)
+        self.fc = nn.Linear(384, enc_dim)
+
+    def forward(self, x, seg):
+        n, c, h, w = x.size()
+        x = F.interpolate(x, (320, 320), mode="bilinear", align_corners=False)
+        x = self.clip(x)
+        x = F.interpolate(x, (h, w), mode="bilinear", align_corners=False)
+        x = super_pixel_pooling(x.view(n, 384, -1), seg.view(-1).long(), reduce="mean")
+        x = self.fc(x.permute(0, 2, 1)).permute(0, 2, 1)
+        return x
 
 
 class SegmentEncoder(nn.Module):
@@ -192,19 +208,18 @@ class SegmentEncoder(nn.Module):
     def __init__(self, input_size, input_channels, enc_dim):
         super().__init__()
 
-        self.layer1 = nn.Conv2d(input_channels, enc_dim // 4, 3, padding=1)
-        self.non_linear1 = nn.ReLU()
+        self.conv1 = nn.Conv2d(input_channels, enc_dim // 4, 3, padding=1)
         self.pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.layer2 = nn.Conv2d(enc_dim // 4, enc_dim // 2, 3, padding=1)
-        self.non_linear2 = nn.ReLU()
+        self.conv2 = nn.Conv2d(enc_dim // 4, enc_dim // 2, 3, padding=1)
         self.pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.layer3 = nn.Conv2d(enc_dim // 2, enc_dim, 3, padding=1)
+        self.conv3 = nn.Conv2d(enc_dim // 2, enc_dim, 3, padding=1)
 
         self.norm1 = nn.InstanceNorm2d(enc_dim // 4)
         self.norm2 = nn.InstanceNorm2d(enc_dim // 2)
         self.norm3 = nn.InstanceNorm2d(enc_dim)
 
-        self.fc_input_size = enc_dim * (input_size // 4) * (input_size // 4)
+        self.finalpool = nn.AdaptiveAvgPool2d((4, 4))
+        self.fc_input_size = enc_dim * 4 * 4
         self.fc = nn.Linear(self.fc_input_size, enc_dim)
 
         for m in self.modules():
@@ -213,9 +228,10 @@ class SegmentEncoder(nn.Module):
                 nn.init.constant_(m.bias, 0.0)
 
     def forward(self, img):
-        x = self.pool1(self.non_linear1(self.norm1(self.layer1(img))))
-        x = self.pool2(self.non_linear2(self.norm2(self.layer2(x))))
-        x = self.norm3(self.layer3(x))
+        x = self.pool1(F.relu(self.norm1(self.conv1(img))))
+        x = self.pool2(F.relu(self.norm2(self.conv2(x))))
+        x = self.norm3(self.conv3(x))
+        x = self.finalpool(x)
         x = self.fc(x.view(-1, self.fc_input_size))
         return x
 
@@ -240,10 +256,6 @@ class KeypointEncoder(nn.Module):
     def __init__(self, feature_dim, layers):
         super().__init__()
         self.encoder = MLP([4] + layers + [feature_dim])
-        # for m in self.encoder.modules():
-        #     if isinstance(m, nn.Conv2d):
-        #         nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-        #         nn.init.constant_(m.bias, 0.0)
         nn.init.constant_(self.encoder[-1].bias, 0.0)
 
     def forward(self, kpts):
@@ -251,23 +263,6 @@ class KeypointEncoder(nn.Module):
         # print(inputs.size(), 'wula!')
         x = self.encoder(inputs)
         # print(x.size())
-        return x
-
-
-class ClipFeatureEncoder(nn.Module):
-    def __init__(self, input_channels, enc_dim):
-        super().__init__()
-        self.input_channels = input_channels
-        self.clip = CLIPEncoder(freeze=True)
-        self.fc = nn.Linear(384, enc_dim)
-
-    def forward(self, x, seg):
-        n, c, h, w = x.size()
-        x = x.view(-1, c, h, w)
-        x = self.clip(x)
-        x = F.interpolate(x, (h, w), mode="bilinear", align_corners=False)
-        x = super_pixel_pooling(x.view(n, 384, -1), seg.view(-1).long(), reduce="mean")
-        x = self.fc(x.permute(0, 2, 1)).permute(0, 2, 1)
         return x
 
 
@@ -347,7 +342,7 @@ def transport(scores, alpha):
 
 
 @ARCH_REGISTRY.register()
-class AnT_raft_clip(nn.Module):
+class BasicPBC_light(nn.Module):
     """SuperGlue feature matching middle-end. A new hard-coded self-attention will be added to the transformer.
     This part is an AnT module with the hard coded transformer.
 
@@ -369,16 +364,7 @@ class AnT_raft_clip(nn.Module):
 
     """
 
-    # default_config = {
-    #     'descriptor_dim': 128,
-    #     'weights': 'indoor',
-    #     'keypoint_encoder': [32, 64, 128],
-    #     'GNN_layers': ['self', 'cross'] * 9,
-    #     'sinkhorn_iterations': 100,
-    #     'match_threshold': 0.2
-    # }
-
-    def __init__(self, descriptor_dim=128, keypoint_encoder=[32, 64, 128], GNN_layer_num=9, token_scale_list=[1], token_crop_size=64, use_clip=False):
+    def __init__(self, descriptor_dim=128, keypoint_encoder=[32, 64, 128], GNN_layer_num=6, token_scale_list=[1], token_crop_size=64, use_clip=False):
 
         super().__init__()
 
@@ -400,12 +386,11 @@ class AnT_raft_clip(nn.Module):
         self.final_proj = nn.Conv1d(self.config.descriptor_dim, self.config.descriptor_dim, kernel_size=1, bias=True)
 
         if config.use_clip:
-            self.clip = ClipFeatureEncoder(5 * len(self.config.token_scale_list), self.config.descriptor_dim)
+            self.clip = ClipFeatureExtracter(5 * len(self.config.token_scale_list), self.config.descriptor_dim)
             self.fuse = nn.Linear(2 * self.config.descriptor_dim, self.config.descriptor_dim)
 
         args = {
             "mixed_precision": False,
-            # "alternate_corr": False,
             "small": False,
             "ckpt": "raft/ckpt/raft-animerun-v2-ft_again.pth",
             "freeze": True,
