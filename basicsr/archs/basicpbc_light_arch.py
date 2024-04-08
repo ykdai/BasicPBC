@@ -155,7 +155,7 @@ class RaftWarper(nn.Module):
                 param.requires_grad = False
 
     def forward(self, line, line_ref, color_ref):
-        h, w = color_ref.shape[-2:]
+        h, w = line.shape[-2:]
         line = F.interpolate(line, (320, 320), mode="bilinear", align_corners=False)
         line_ref = F.interpolate(line_ref, (320, 320), mode="bilinear", align_corners=False)
         color_ref = F.interpolate(color_ref, (320, 320), mode="bilinear", align_corners=False)
