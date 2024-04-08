@@ -96,7 +96,7 @@ if __name__ == "__main__":
     save_color_seg = args.save_color_seg
     multi_clip = args.multi_clip
 
-    # generate_seg(path, seg_type, radius, save_color_seg, multi_clip)
+    generate_seg(path, seg_type, radius, save_color_seg, multi_clip)
 
     ckpt_path = "ckpt/basicpbc.pth"
     model = BasicPBC(
