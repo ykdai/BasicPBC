@@ -35,11 +35,11 @@ class AnimeInferenceDataset(data.Dataset):
         if nh > nw:
             # Width is smaller, pad left and right
             line = np.pad(line, ((0, 0), (pad1, pad2), (0, 0)), constant_values=255)
-            seg = np.pad(seg, ((0, 0), (pad1, pad2)), constant_values=1)  # 1 means background
+            seg = np.pad(seg, ((0, 0), (pad1, pad2)), constant_values=0)  # 0 will be ignored
         else:
             # Height is smaller, pad top and bottom
             line = np.pad(line, ((pad1, pad2), (0, 0), (0, 0)), constant_values=255)
-            seg = np.pad(seg, ((pad1, pad2), (0, 0)), constant_values=1)  # 1 means background
+            seg = np.pad(seg, ((pad1, pad2), (0, 0)), constant_values=0)
 
         return line, seg
 
