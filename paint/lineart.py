@@ -15,6 +15,10 @@ class LineArt:
             self.new_colorbook = new_colorbook
         else:
             self.new_colorbook = colorbook
+        if lineart_img.shape[-1] == 3:
+            mask = np.all(lineart_img == [255, 255, 255], axis=-1)
+            alpha_channel = (~mask).astype(np.uint8) * 255
+            lineart_img = np.concatenate([lineart_img, alpha_channel[..., None]], axis=-1)
         self.lineart = lineart_img
         self.alpha = lineart_img[:, :, 3]
         # binarize alpha channel
@@ -149,7 +153,7 @@ def trappedball_fill(img_path, save_path, radius=4, contour=False):
     fills += fill
     result = mark_fill(result, fill)
 
-    fill = trapped_ball_fill_multi(result, radius // 4, method=None)
+    fill = trapped_ball_fill_multi(result, 1, method=None)
     fills += fill
     result = mark_fill(result, fill)
 
