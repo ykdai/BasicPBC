@@ -177,7 +177,8 @@ def colorize_label_image(label_img_path, json_path, save_path):
         json_dict = json.load(f)
     color_dict = json_dict
     color_index = np.array(list(color_dict.values()))
-    color_index = np.insert(color_index, 0, [0, 0, 0, 255], axis=0)
+    line_color = [0, 0, 0, 255] if len(color_index[0]) == 4 else [0, 0, 0]
+    color_index = np.insert(color_index, 0, line_color, axis=0)
 
     h, w = label_img.shape
     # colored_img = np.zeros((h, w, 4), dtype=np.uint8)

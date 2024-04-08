@@ -21,6 +21,7 @@ Colorizing line art is a pivotal task in the production of hand-drawn cel animat
 In this work, we introduce a new learning-based inclusion matching pipeline, which directs the network to comprehend the inclusion relationships between segments. To facilitate the training of our network, we also propose a unique dataset **PaintBucket-Character**. This dataset includes rendered line arts alongside their colorized counterparts, featuring various 3D characters.
 
 ### Update
+- **2024.04.08**: Model inference updated. Support all resolutions and unclosed line art images.
 - **2024.03.30**: The checkpoint and training code of our BasicPBC are released.
 - **2024.03.29**: This repo is created.
 
@@ -78,24 +79,29 @@ python basicsr/test.py -opt options/test/basicpbc_pbch_test_option.yml
 ```
 The colorized results will be saved at `results/`.
 
-To inference on your own data, put your animation clips under `dataset/test/your_data/`. The clip folder should contain the colorized `gt` of the 1st frame and `line` of all frames.
+To inference on your own data, put your animation clip(s) under `dataset/test/`. The clip folder should contain the colorized `gt` of the 1st frame and `line` of all frames. We provide a simple example `laughing_girl`.
 ```
 ├── dataset 
     ├── test
-        ├── your_data
-            ├── anime_clip1
-                ├── gt
-                    ├── 0000.png
-                ├── line
-                    ├── 0000.png
-                    ├── 0001.png
-                    ├── ...
+        ├── laughing_girl
+            ├── gt
+                ├── 0000.png
+            ├── line
+                ├── 0000.png
+                ├── 0001.png
+                ├── ...
 ```
 Run the `inference_line_frames.py` by using:
 ```bash
-python inference_line_frames.py --folder_path dataset/test/your_data/
+python inference_line_frames.py --path dataset/test/laughing_girl
 ```
-Find results under `results/your_data/`.
+Find results under `results/`.
+
+If your anime clip contains unclosed line art images, try running with our new argument `--seg_type trappedball`. To use this feature, first clone the LineFiller repository (acknowledge <a href="https://github.com/hepesu">@HEPESU</a>):
+```bash
+# under BasicPBC root directory:
+git clone https://github.com/hepesu/LineFiller.git
+```
 
 ### Model Training
 

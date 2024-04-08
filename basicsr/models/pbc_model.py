@@ -201,9 +201,8 @@ class ModelInference:
         torch.set_rng_state(self.torch_rng_state0)
 
     def dis_data_to_cuda(self, data):
-        white_list = ["file_name"]
         for key in data.keys():
-            if key not in white_list:
+            if isinstance(data[key], torch.Tensor):
                 data[key] = data[key].cuda()
         return data
 
@@ -234,10 +233,10 @@ class ModelInference:
 
                 if self_prop:
                     prev_json_path = osp.join(save_folder, prev_name_str + ".json")
-                    prev_result_path = prev_json_path.replace("json", "png")
-                    prev_result = read_img_2_np(prev_result_path)
-                    recolorized_img = recolorize_gt(prev_result)
-                    test_data["recolorized_img"] = recolorized_img.unsqueeze(0)
+                    # prev_result_path = prev_json_path.replace("json", "png")
+                    # prev_result = read_img_2_np(prev_result_path)
+                    # recolorized_img = recolorize_gt(prev_result)
+                    # test_data["recolorized_img"] = recolorized_img.unsqueeze(0)
 
                 color_dict = load_json(prev_json_path)
                 # color_dict['0']=[0,0,0,255] #black line
@@ -248,16 +247,17 @@ class ModelInference:
                 match_scores = match_tensor["match_scores"].cpu().numpy()
 
                 color_next_frame = {}
+                unmatch_color = [0] * len(list(color_dict.values())[0])
                 if not accu:
                     for i, item in enumerate(match):
                         if item == -1:
                             # This segment cannot be matched
-                            color_next_frame[str(i + 1)] = [0, 0, 0, 0]
+                            color_next_frame[str(i + 1)] = unmatch_color
                         else:
                             color_next_frame[str(i + 1)] = color_dict[str(item + 1)]
                 else:
                     for i, scores in enumerate(match_scores):
-                        color_lookup = np.array([(color_dict[str(i + 1)] if str(i + 1) in color_dict else [0, 0, 0, 0]) for i in range(len(scores))])
+                        color_lookup = np.array([(color_dict[str(i + 1)] if str(i + 1) in color_dict else unmatch_color) for i in range(len(scores))])
                         unique_colors = np.unique(color_lookup, axis=0)
                         accumulated_probs = [np.sum(scores[np.all(color_lookup == color, axis=1)]) for color in unique_colors]
                         color_next_frame[str(i + 1)] = unique_colors[np.argmax(accumulated_probs)].tolist()
