@@ -21,6 +21,9 @@ def generate_seg(path, seg_type="default", radius=4, save_color_seg=False, multi
     else:
         clip_list = [osp.join(path, clip) for clip in os.listdir(path)]
 
+    if seg_type == "trappedball":
+        save_color_seg = True
+
     for clip_path in clip_list:
         line_folder = osp.join(clip_path, "line")
         seg_folder = osp.join(clip_path, "seg")
@@ -83,11 +86,13 @@ def load_params(model_path):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--path", type=str, default="dataset/test/your_clip")
-    parser.add_argument("--seg_type", choices=["default", "trappedball"], default="default")
-    parser.add_argument("--radius", type=int, default=4)
-    parser.add_argument("--save_color_seg", action="store_true")
-    parser.add_argument("--multi_clip", action="store_true")
+    parser.add_argument("--path", type=str, default="dataset/test/laughing_girl", help="path to your anime clip folder or folder containing multiple clips.")
+    parser.add_argument("--seg_type", choices=["default", "trappedball"], default="default", help="choose `trappedball` if line art not closed.")
+    parser.add_argument("--radius", type=int, default=4, help="used together with `--seg_type trappedball`. Increase the value if unclosed pixels' high.")
+    parser.add_argument("--save_color_seg", action="store_true", help="add this arg to show colorized segment results. It's a must when `trappedball` chosen.")
+    parser.add_argument(
+        "--multi_clip", action="store_true", help="used for multi-clip inference. Set `path` to a folder where each sub-folder is a single clip."
+    )
     args = parser.parse_args()
 
     path = args.path
