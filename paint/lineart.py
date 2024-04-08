@@ -3,8 +3,8 @@ import numpy as np
 import os
 from skimage import measure, morphology
 
-from linefiller.linefiller.thinning import thinning
-from linefiller.linefiller.trappedball_fill import build_fill_map, flood_fill_multi, mark_fill, merge_fill, show_fill_map, trapped_ball_fill_multi
+from LineFiller.linefiller.thinning import thinning
+from LineFiller.linefiller.trappedball_fill import build_fill_map, flood_fill_multi, mark_fill, merge_fill, show_fill_map, trapped_ball_fill_multi
 from paint.utils import generate_random_colors, np_2_labelpng
 
 
