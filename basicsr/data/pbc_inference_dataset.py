@@ -6,14 +6,14 @@ import torch.utils.data as data
 from glob import glob
 
 from basicsr.utils.registry import DATASET_REGISTRY
-from paint.utils import read_img_2_np, read_seg_2_np, recolorize_seg
+from paint.utils import read_img_2_np, read_seg_2_np, recolorize_seg, recolorize_gt
 
 
 class AnimeInferenceDataset(data.Dataset):
     def __init__(self):
         self.data_list = []
 
-    def _square_line_seg(self, line, seg, border=32):
+    def _square_img_data(self, line, seg, gt=None, border=16):
         # Crop the content
         mask = np.any(line != [255, 255, 255], axis=-1)  # assume background is white
         coords = np.argwhere(mask)
@@ -26,6 +26,8 @@ class AnimeInferenceDataset(data.Dataset):
 
         line = line[y_min : y_max + 1, x_min : x_max + 1]
         seg = seg[y_min : y_max + 1, x_min : x_max + 1]
+        if gt is not None:
+            gt = gt[y_min : y_max + 1, x_min : x_max + 1]
 
         # Pad to square
         nh, nw = line.shape[:2]
@@ -36,12 +38,16 @@ class AnimeInferenceDataset(data.Dataset):
             # Width is smaller, pad left and right
             line = np.pad(line, ((0, 0), (pad1, pad2), (0, 0)), constant_values=255)
             seg = np.pad(seg, ((0, 0), (pad1, pad2)), constant_values=0)  # 0 will be ignored
+            if gt is not None:
+                gt = np.pad(gt, ((0, 0), (pad1, pad2), (0, 0)), mode="edge")
         else:
             # Height is smaller, pad top and bottom
             line = np.pad(line, ((pad1, pad2), (0, 0), (0, 0)), constant_values=255)
             seg = np.pad(seg, ((pad1, pad2), (0, 0)), constant_values=0)
+            if gt is not None:
+                gt = np.pad(gt, ((pad1, pad2), (0, 0), (0, 0)), mode="edge")
 
-        return line, seg
+        return line, seg, gt if gt is not None else None
 
     def _process_seg(self, seg):
         seg_list = np.unique(seg[seg != 0])
@@ -93,9 +99,11 @@ class AnimeInferenceDataset(data.Dataset):
         seg = read_seg_2_np(self.data_list[index]["seg"])
         seg_ref = read_seg_2_np(self.data_list[index]["seg_ref"])
 
-        height, width = line.shape[:2]
-        line, seg = self._square_line_seg(line, seg)
-        line_ref, seg_ref = self._square_line_seg(line_ref, seg_ref)
+        gt_ref = self.data_list[index]["gt_ref"]
+        gt_ref = read_img_2_np(gt_ref) if gt_ref is not None else None
+
+        line, seg, _ = self._square_img_data(line, seg)
+        line_ref, seg_ref, gt_ref = self._square_img_data(line_ref, seg_ref, gt_ref)
 
         keypoints, centerpoints, numpixels, seg = self._process_seg(seg)
         keypoints_ref, centerpoints_ref, numpixels_ref, seg_ref = self._process_seg(seg_ref)
@@ -106,7 +114,7 @@ class AnimeInferenceDataset(data.Dataset):
         seg = torch.from_numpy(seg)[None]
         seg_ref = torch.from_numpy(seg_ref)[None]
 
-        colored_seg_ref = recolorize_seg(seg_ref)
+        recolorized_img = recolorize_seg(seg_ref) if gt_ref is None else recolorize_gt(gt_ref)
 
         return {
             "file_name": file_name,
@@ -121,7 +129,7 @@ class AnimeInferenceDataset(data.Dataset):
             "line_ref": line_ref,
             "segment": seg,
             "segment_ref": seg_ref,
-            "recolorized_img": colored_seg_ref,
+            "recolorized_img": recolorized_img,
         }
 
     def __rmul__(self, v):
@@ -149,23 +157,30 @@ class PaintBucketInferenceDataset(AnimeInferenceDataset):
         for character_path in character_paths:
 
             line_root = osp.join(character_path, "line")
-            seg_root = osp.join(character_path, "seg")
-
             line_list = sorted(glob(osp.join(line_root, "*.png")))
-            seg_list = sorted(glob(osp.join(seg_root, "*.png")))
 
             L = len(line_list)
 
             for i in range(L - 1):
+
+                file_name, _ = osp.splitext(line_list[i + 1])
+                line = line_list[i + 1]
+                seg = line.replace("line", "seg")
+                file_name_ref, _ = osp.splitext(line_list[i])
+                line_ref = line_list[i]
+                seg_ref = line_ref.replace("line", "seg")
+                gt_ref = line_ref.replace("line", "gt")
+                gt_ref = gt_ref if osp.exists(gt_ref) else None
+
                 data_sample = {
-                    "file_name": line_list[i + 1][:-4],
-                    "line": line_list[i + 1],
-                    "seg": seg_list[i + 1],
-                    "file_name_ref": line_list[i][:-4],
-                    "line_ref": line_list[i],
-                    "seg_ref": seg_list[i],
+                    "file_name": file_name,
+                    "line": line,
+                    "seg": seg,
+                    "file_name_ref": file_name_ref,
+                    "line_ref": line_ref,
+                    "seg_ref": seg_ref,
+                    "gt_ref": gt_ref,
                 }
                 self.data_list += [data_sample]
 
-        # TODO
-        print("Length of data sample list is", len(self.data_list))
+        print("Length of line frames is ", len(self.data_list))
