@@ -15,19 +15,50 @@ from paint.lineart import LineArt, trappedball_fill
 from paint.utils import dump_json, np_2_labelpng, read_seg_2_np, recolorize_seg
 
 
+def extract_seg_from_color(color_img_path, line_path, seg_save_path):
+    color_label = ColorLabel()
+    color_label.extract_label_map(color_img_path, seg_save_path, line_path, extract_seg=True)
+
+
+def extract_seg_from_line(line_path, seg_save_path, save_color_seg=False, color_save_path=None):
+    lineart = LineArt(io.imread(line_path))
+    lineart.label_color_line()
+    seg_np = lineart.label_img
+    seg = np_2_labelpng(seg_np)
+    io.imsave(seg_save_path, seg, check_contrast=False)
+    if save_color_seg:
+        color_seg = recolorize_seg(torch.from_numpy(seg_np)[None])
+        save_image(color_seg, color_save_path)
+
+
+def extract_color_dict(gt_path, seg_path):
+    gt = io.imread(gt_path)
+    seg = read_seg_2_np(seg_path)
+    color_dict = {}
+    props = measure.regionprops(seg)
+    for i in range(1, seg.max() + 1):
+        pos = props[i - 1].coords[0]
+        index_color = gt[pos[0], pos[1], :]
+        color_dict[str(i)] = index_color.tolist()
+    save_path = seg_path.replace(".png", ".json")
+    dump_json(color_dict, save_path)
+
+
 def generate_seg(path, seg_type="default", radius=4, save_color_seg=False, multi_clip=False):
+    if seg_type == "trappedball":
+        save_color_seg = True
+
     if not multi_clip:
         clip_list = [path]
     else:
         clip_list = [osp.join(path, clip) for clip in os.listdir(path)]
 
-    if seg_type == "trappedball":
-        save_color_seg = True
-
     for clip_path in clip_list:
+        gt_folder = osp.join(clip_path, "gt")
         line_folder = osp.join(clip_path, "line")
         seg_folder = osp.join(clip_path, "seg")
         seg_color_folder = osp.join(clip_path, "seg_color")
+        gt_names = [osp.splitext(gt)[0] for gt in os.listdir(gt_folder)]
         os.makedirs(seg_folder, exist_ok=True)
         if save_color_seg:
             os.makedirs(seg_color_folder, exist_ok=True)
@@ -36,41 +67,18 @@ def generate_seg(path, seg_type="default", radius=4, save_color_seg=False, multi
             name = osp.split(line_path)[-1][:-4]
             seg_path = osp.join(seg_folder, name + ".png")
             seg_color_path = osp.join(seg_color_folder, name + ".png")
-            if seg_type == "default":
-                lineart = LineArt(io.imread(line_path))
-                lineart.label_color_line()
-                seg_np = lineart.label_img
-                seg = np_2_labelpng(seg_np)
-                io.imsave(seg_path, seg, check_contrast=False)
-                if save_color_seg:
-                    color_seg = recolorize_seg(torch.from_numpy(seg_np)[None])
-                    save_image(color_seg, seg_color_path)
+
+            if name in gt_names:
+                gt_path = osp.join(gt_folder, name + ".png")
+                extract_seg_from_color(gt_path, line_path, seg_path)
+                extract_color_dict(gt_path, seg_path)
+            elif seg_type == "default":
+                extract_seg_from_line(line_path, seg_path, save_color_seg, seg_color_path)
             elif seg_type == "trappedball":
                 trappedball_fill(line_path, seg_color_path, radius, contour=True)
-                color_label = ColorLabel()
-                if int(name) == 0:
-                    color_label.extract_label_map(seg_color_path.replace("seg_color", "gt"), seg_path, line_path, extract_seg=True)
-                else:
-                    color_label.extract_label_map(seg_color_path, seg_path, line_path, extract_seg=True)
+                extract_seg_from_color(seg_color_path, line_path, seg_path)
+
             print(f"{seg_path} created.")
-
-        extract_color_dict(clip_path)
-
-
-def extract_color_dict(clip_path):
-    seg0_path = sorted(glob(osp.join(clip_path, "seg", "*.png")))[0]
-    gt0_path = sorted(glob(osp.join(clip_path, "gt", "*.png")))[0]
-    seg = read_seg_2_np(seg0_path)
-    gt = io.imread(gt0_path)
-
-    color_dict = {}
-    props = measure.regionprops(seg)
-    for i in range(1, seg.max() + 1):
-        pos = props[i - 1].coords[0]
-        index_color = gt[pos[0], pos[1], :]
-        color_dict[str(i)] = index_color.tolist()
-
-    dump_json(color_dict, seg0_path.replace(".png", ".json"))
 
 
 def load_params(model_path):

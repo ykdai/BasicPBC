@@ -219,26 +219,28 @@ class ModelInference:
                 character_root = osp.split(line_root)[0]
                 prev_index = int(name_str) - 1
                 prev_name_str = str(prev_index).zfill(len(name_str))
-                prev_json_path = osp.join(character_root, "seg", prev_name_str + ".json")
+                ref_json_path = osp.join(character_root, "seg", prev_name_str + ".json")
                 save_folder = osp.join(save_path, osp.split(character_root)[-1])
 
                 if prev_index == 0:
                     os.makedirs(save_folder, exist_ok=True)
-                    # Copy the 0000.json to the result folder
-                    shutil.copy(prev_json_path, save_folder)
+                    shutil.copy(ref_json_path, save_folder)
                     if save_img:
-                        # Copy gt/0000.png to the result folder
                         gt0_path = osp.join(character_root, "gt", prev_name_str + ".png")
                         shutil.copy(gt0_path, save_folder)
 
                 if self_prop:
-                    prev_json_path = osp.join(save_folder, prev_name_str + ".json")
-                    # prev_result_path = prev_json_path.replace("json", "png")
-                    # prev_result = read_img_2_np(prev_result_path)
-                    # recolorized_img = recolorize_gt(prev_result)
-                    # test_data["recolorized_img"] = recolorized_img.unsqueeze(0)
+                    gt_path = osp.join(character_root, "gt", name_str + ".png")
+                    if osp.exists(gt_path):  # gt of current frame is given
+                        json_path = osp.join(character_root, "seg", name_str + ".json")
+                        shutil.copy(gt_path, save_folder)
+                        shutil.copy(json_path, save_folder)
+                        print(gt_path, " is given!")
+                        continue
+                    else:  # predict the current frame based on previous frame
+                        ref_json_path = osp.join(save_folder, prev_name_str + ".json")
 
-                color_dict = load_json(prev_json_path)
+                color_dict = load_json(ref_json_path)
                 # color_dict['0']=[0,0,0,255] #black line
                 json_save_path = osp.join(save_folder, name_str + ".json")
 
