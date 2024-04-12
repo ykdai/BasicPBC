@@ -23,7 +23,7 @@ network_g:
   descriptor_dim: 128
   keypoint_encoder: [32, 64, 128]
   GNN_layer_num: 9
-  use_clip: True
+  use_clip: true
 
 # path
 path:
@@ -37,7 +37,6 @@ val:
   val_freq: !!float 5e4
   save_img: true
   save_csv: true
-  accu: true
 
   metrics:
     acc: # metric name
