@@ -3,10 +3,11 @@ import os
 import os.path as osp
 import torch
 import torch.utils.data as data
+from collections import defaultdict
 from glob import glob
 
 from basicsr.utils.registry import DATASET_REGISTRY
-from paint.utils import read_img_2_np, read_seg_2_np, recolorize_seg, recolorize_gt
+from paint.utils import read_img_2_np, read_seg_2_np, recolorize_gt, recolorize_seg
 
 
 class AnimeInferenceDataset(data.Dataset):
@@ -148,6 +149,7 @@ class PaintBucketInferenceDataset(AnimeInferenceDataset):
         self.opt = opt
         self.root = opt["root"]
         self.multi_clip = opt["multi_clip"] if "multi_clip" in opt else False
+        self.mode = opt["mode"] if "mode" in opt else "forward"
 
         if not self.multi_clip:
             character_paths = [self.root]
@@ -159,18 +161,28 @@ class PaintBucketInferenceDataset(AnimeInferenceDataset):
             line_root = osp.join(character_path, "line")
             line_list = sorted(glob(osp.join(line_root, "*.png")))
 
+            gt_root = osp.join(character_path, "gt")
+            gt_list = sorted(glob(osp.join(gt_root, "*.png")))
+            all_gt = [int(osp.splitext(osp.split(gt_path)[-1])[0]) for gt_path in gt_list]
+
             L = len(line_list)
+            if self.mode == "forward":
+                index_map = {i: i - 1 for i in range(all_gt[0], L) if i not in all_gt}  # target: ref
+                index_list = list(range(L))
+            elif self.mode == "nearest":
+                index_map = {i: self._get_ref_frame_id(i, all_gt) for i in range(L) if i not in all_gt}
+                index_list = self._sort_indices(index_map)
 
-            for i in range(L - 1):
-
-                file_name, _ = osp.splitext(line_list[i + 1])
-                line = line_list[i + 1]
+            for index in index_list:
+                file_name, _ = osp.splitext(line_list[index])
+                line = line_list[index]
                 seg = line.replace("line", "seg")
-                file_name_ref, _ = osp.splitext(line_list[i])
-                line_ref = line_list[i]
+
+                ref = index_map[index]
+                file_name_ref, _ = osp.splitext(line_list[ref])
+                line_ref = line_list[ref]
                 seg_ref = line_ref.replace("line", "seg")
-                gt_ref = line_ref.replace("line", "gt")
-                gt_ref = gt_ref if osp.exists(gt_ref) else None
+                gt_ref = line_ref.replace("line", "gt") if ref in all_gt else None
 
                 data_sample = {
                     "file_name": file_name,
@@ -183,4 +195,29 @@ class PaintBucketInferenceDataset(AnimeInferenceDataset):
                 }
                 self.data_list += [data_sample]
 
-        print("Length of line frames is ", len(self.data_list))
+        print("Length of line frames to be colored:", len(self.data_list))
+
+    def _get_ref_frame_id(self, index, all_gt):
+        nearest_gt = min(all_gt, key=lambda x: abs(x - index))
+        ref_index = index - 1 if nearest_gt < index else index + 1
+        return ref_index
+
+    def _sort_indices(self, index_map):
+        adj_list = defaultdict(list)
+        for end, start in index_map.items():
+            adj_list[start].append(end)
+
+        visited = set()
+        result = []
+
+        def _dfs(point):
+            if point not in visited:
+                visited.add(point)
+                for neighbor in adj_list.get(point, []):
+                    _dfs(neighbor)
+                result.append(point)
+
+        for point in index_map.keys():
+            _dfs(point)
+
+        return result[::-1]

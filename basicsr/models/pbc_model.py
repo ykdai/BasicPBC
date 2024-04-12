@@ -5,6 +5,7 @@ import random
 import shutil
 import torch
 from collections import OrderedDict
+from glob import glob
 from skimage import io
 from torch import nn as nn
 from torch.nn import init as init
@@ -269,3 +270,44 @@ class ModelInference:
                     label_path = osp.join(character_root, "seg", name_str + ".png")
                     img_save_path = json_save_path.replace(".json", ".png")
                     colorize_label_image(label_path, json_save_path, img_save_path)
+
+    def inference_multi_gt(self, save_path):
+        with torch.no_grad():
+            self.model.eval()
+            characters = set()
+            for test_data in tqdm(self.test_loader):
+                line_root, name_str = osp.split(test_data["file_name"][0])
+                character_root, _ = osp.split(line_root)
+                _, character_name = osp.split(character_root)
+
+                save_folder = osp.join(save_path, character_name)
+                if character_name not in characters:
+                    characters.add(character_name)
+                    os.makedirs(save_folder, exist_ok=True)
+                    gt_root = line_root.replace("line", "gt")
+                    for gt_path in glob(osp.join(gt_root, "*.png")):
+                        json_path = gt_path.replace("gt", "seg").replace("png", "json")
+                        shutil.copy(gt_path, save_folder)
+                        shutil.copy(json_path, save_folder)
+                        print(gt_path, "is given.")
+
+                _, name_str_ref = osp.split(test_data["file_name_ref"][0])
+                json_path_ref = osp.join(save_folder, name_str_ref + ".json")
+                color_dict = load_json(json_path_ref)
+                json_save_path = osp.join(save_folder, name_str + ".json")
+
+                match_tensor = self.model(self.dis_data_to_cuda(test_data))
+                match_scores = match_tensor["match_scores"].cpu().numpy()
+
+                color_next_frame = {}
+                unmatch_color = [0] * len(list(color_dict.values())[0])
+                for i, scores in enumerate(match_scores):
+                    color_lookup = np.array([(color_dict[str(i + 1)] if str(i + 1) in color_dict else unmatch_color) for i in range(len(scores))])
+                    unique_colors = np.unique(color_lookup, axis=0)
+                    accumulated_probs = [np.sum(scores[np.all(color_lookup == color, axis=1)]) for color in unique_colors]
+                    color_next_frame[str(i + 1)] = unique_colors[np.argmax(accumulated_probs)].tolist()
+                dump_json(color_next_frame, json_save_path)
+
+                label_path = osp.join(character_root, "seg", name_str + ".png")
+                img_save_path = json_save_path.replace(".json", ".png")
+                colorize_label_image(label_path, json_save_path, img_save_path)
