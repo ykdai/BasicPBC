@@ -95,6 +95,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--path", type=str, default="dataset/test/laughing_girl", help="path to your anime clip folder or folder containing multiple clips.")
+    parser.add_argument("--mode", choices=["forward", "nearest"], default="forward", help="")
     parser.add_argument("--seg_type", choices=["default", "trappedball"], default="default", help="choose `trappedball` if line art not closed.")
     parser.add_argument("--radius", type=int, default=4, help="used together with `--seg_type trappedball`. Increase the value if unclosed pixels' high.")
     parser.add_argument("--save_color_seg", action="store_true", help="add this arg to show colorized segment results. It's a must when `trappedball` chosen.")
@@ -108,6 +109,7 @@ if __name__ == "__main__":
     radius = args.radius
     save_color_seg = args.save_color_seg
     multi_clip = args.multi_clip
+    mode = args.mode
 
     generate_seg(path, seg_type, radius, save_color_seg, multi_clip)
 
@@ -126,10 +128,10 @@ if __name__ == "__main__":
     model.load_state_dict(load_params(ckpt_path))
     model.eval()
 
-    opt = {"root": path, "multi_clip": multi_clip}
+    opt = {"root": path, "multi_clip": multi_clip, "mode": mode}
     dataset = PaintBucketInferenceDataset(opt)
     dataloader = data.DataLoader(dataset, batch_size=1)
 
     model_inference = ModelInference(model, dataloader)
     save_path = path.replace("dataset/test", "results")
-    model_inference.inference_frame_by_frame(save_path, accu=True, self_prop=True)
+    model_inference.inference_multi_gt(save_path)
