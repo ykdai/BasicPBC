@@ -265,7 +265,7 @@ class AnimeSegMatDataset(data.Dataset):
 
         if self.color_redistribution_type == "seg":
             recolorized_img = recolorize_seg(seg_ref)
-        elif self.color_redistribution_type == "gt" and self.gt_list:
+        elif self.color_redistribution_type == "gt":
             gt_ref = read_img_2_np(self.gt_list[index][1])
             recolorized_img = recolorize_gt(gt_ref)
         else:
@@ -327,19 +327,16 @@ class PaintBucketSegMat(AnimeSegMatDataset):
                 seg_list = sorted(glob(osp.join(seg_root, "*.png")))
             else:
                 seg_list = sorted(glob(osp.join(seg_root, "*.npy")))
-            assert len(line_list) == len(seg_list)
 
             gt_root = osp.join(root, character, "gt")
             gt_list = sorted(glob(osp.join(gt_root, "*.png")))
-            if len(gt_list) != len(line_list):
-                gt_list = None
-                print("gt not loaded because #gt != #line. Ignore this if doing self-propagate inference.")
+
+            assert len(line_list) == len(seg_list) == len(gt_list)
 
             L = len(line_list)
             for i in range(L - 1):
                 self.line_list += [[line_list[i + 1], line_list[i]]]
                 self.seg_list += [[seg_list[i + 1], seg_list[i]]]
-                if gt_list:
-                    self.gt_list += [[gt_list[i + 1], gt_list[i]]]
+                self.gt_list += [[gt_list[i + 1], gt_list[i]]]
 
         print("Length of Testing Sequence is ", len(self.line_list))

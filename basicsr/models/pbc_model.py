@@ -5,6 +5,7 @@ import random
 import shutil
 import torch
 from collections import OrderedDict
+from glob import glob
 from skimage import io
 from torch import nn as nn
 from torch.nn import init as init
@@ -108,8 +109,6 @@ class PBCModel(SRModel):
         with_metrics = self.opt["val"].get("metrics") is not None
         save_img = self.opt["val"].get("save_img", False)
         save_csv = self.opt["val"].get("save_csv", False)
-        accu = self.opt["val"].get("accu", False)
-        self_prop = self.opt["val"].get("self_prop", False)
 
         if with_metrics:
             if not hasattr(self, "metric_results"):  # only execute in the first run
@@ -126,7 +125,7 @@ class PBCModel(SRModel):
 
         self.net_g.train()
         save_path = osp.join(self.opt["path"]["visualization"], str(current_iter), dataset_name)
-        model_inference.inference_frame_by_frame(save_path, save_img, accu, self_prop)
+        model_inference.inference_frame_by_frame(save_path, save_img)
         results = eval_json_folder(save_path, gt_folder_path, "")
         if save_csv:
             csv_save_path = os.path.join(save_path, "metrics.csv")
@@ -206,12 +205,8 @@ class ModelInference:
                 data[key] = data[key].cuda()
         return data
 
-    def inference_frame_by_frame(self, save_path, save_img=True, accu=False, self_prop=False):
+    def inference_frame_by_frame(self, save_path, save_img=False):
         # Process the line arts frame by frame and save them at save_path
-        # For example, if the save_path is 'aug_iter360k'
-        # the output images will be saved at: '{img_load_path}/{glob_folder(like michelle)}/aug_iter360k/0001.png'
-        if self_prop:
-            save_img = True
         with torch.no_grad():
             self.model.eval()
             for test_data in tqdm(self.test_loader):
@@ -219,51 +214,73 @@ class ModelInference:
                 character_root = osp.split(line_root)[0]
                 prev_index = int(name_str) - 1
                 prev_name_str = str(prev_index).zfill(len(name_str))
-                prev_json_path = osp.join(character_root, "seg", prev_name_str + ".json")
+                ref_json_path = osp.join(character_root, "seg", prev_name_str + ".json")
                 save_folder = osp.join(save_path, osp.split(character_root)[-1])
 
                 if prev_index == 0:
                     os.makedirs(save_folder, exist_ok=True)
-                    # Copy the 0000.json to the result folder
-                    shutil.copy(prev_json_path, save_folder)
+                    shutil.copy(ref_json_path, save_folder)
                     if save_img:
-                        # Copy gt/0000.png to the result folder
                         gt0_path = osp.join(character_root, "gt", prev_name_str + ".png")
                         shutil.copy(gt0_path, save_folder)
 
-                if self_prop:
-                    prev_json_path = osp.join(save_folder, prev_name_str + ".json")
-                    # prev_result_path = prev_json_path.replace("json", "png")
-                    # prev_result = read_img_2_np(prev_result_path)
-                    # recolorized_img = recolorize_gt(prev_result)
-                    # test_data["recolorized_img"] = recolorized_img.unsqueeze(0)
-
-                color_dict = load_json(prev_json_path)
-                # color_dict['0']=[0,0,0,255] #black line
+                color_dict = load_json(ref_json_path)
                 json_save_path = osp.join(save_folder, name_str + ".json")
 
                 match_tensor = self.model(self.dis_data_to_cuda(test_data))
-                match = match_tensor["matches0"].cpu().numpy()
                 match_scores = match_tensor["match_scores"].cpu().numpy()
 
                 color_next_frame = {}
                 unmatch_color = [0] * len(list(color_dict.values())[0])
-                if not accu:
-                    for i, item in enumerate(match):
-                        if item == -1:
-                            # This segment cannot be matched
-                            color_next_frame[str(i + 1)] = unmatch_color
-                        else:
-                            color_next_frame[str(i + 1)] = color_dict[str(item + 1)]
-                else:
-                    for i, scores in enumerate(match_scores):
-                        color_lookup = np.array([(color_dict[str(i + 1)] if str(i + 1) in color_dict else unmatch_color) for i in range(len(scores))])
-                        unique_colors = np.unique(color_lookup, axis=0)
-                        accumulated_probs = [np.sum(scores[np.all(color_lookup == color, axis=1)]) for color in unique_colors]
-                        color_next_frame[str(i + 1)] = unique_colors[np.argmax(accumulated_probs)].tolist()
-                # color_next_frame.pop('0')
+                for i, scores in enumerate(match_scores):
+                    color_lookup = np.array([(color_dict[str(i + 1)] if str(i + 1) in color_dict else unmatch_color) for i in range(len(scores))])
+                    unique_colors = np.unique(color_lookup, axis=0)
+                    accumulated_probs = [np.sum(scores[np.all(color_lookup == color, axis=1)]) for color in unique_colors]
+                    color_next_frame[str(i + 1)] = unique_colors[np.argmax(accumulated_probs)].tolist()
                 dump_json(color_next_frame, json_save_path)
+
                 if save_img:
                     label_path = osp.join(character_root, "seg", name_str + ".png")
                     img_save_path = json_save_path.replace(".json", ".png")
                     colorize_label_image(label_path, json_save_path, img_save_path)
+
+    def inference_multi_gt(self, save_path):
+        with torch.no_grad():
+            self.model.eval()
+            characters = set()
+            for test_data in tqdm(self.test_loader):
+                line_root, name_str = osp.split(test_data["file_name"][0])
+                character_root, _ = osp.split(line_root)
+                _, character_name = osp.split(character_root)
+
+                save_folder = osp.join(save_path, character_name)
+                if character_name not in characters:
+                    characters.add(character_name)
+                    os.makedirs(save_folder, exist_ok=True)
+                    gt_root = line_root.replace("line", "gt")
+                    for gt_path in glob(osp.join(gt_root, "*.png")):
+                        json_path = gt_path.replace("gt", "seg").replace("png", "json")
+                        shutil.copy(gt_path, save_folder)
+                        shutil.copy(json_path, save_folder)
+                        print(gt_path, "is given.")
+
+                _, name_str_ref = osp.split(test_data["file_name_ref"][0])
+                json_path_ref = osp.join(save_folder, name_str_ref + ".json")
+                color_dict = load_json(json_path_ref)
+                json_save_path = osp.join(save_folder, name_str + ".json")
+
+                match_tensor = self.model(self.dis_data_to_cuda(test_data))
+                match_scores = match_tensor["match_scores"].cpu().numpy()
+
+                color_next_frame = {}
+                unmatch_color = [0] * len(list(color_dict.values())[0])
+                for i, scores in enumerate(match_scores):
+                    color_lookup = np.array([(color_dict[str(i + 1)] if str(i + 1) in color_dict else unmatch_color) for i in range(len(scores))])
+                    unique_colors = np.unique(color_lookup, axis=0)
+                    accumulated_probs = [np.sum(scores[np.all(color_lookup == color, axis=1)]) for color in unique_colors]
+                    color_next_frame[str(i + 1)] = unique_colors[np.argmax(accumulated_probs)].tolist()
+                dump_json(color_next_frame, json_save_path)
+
+                label_path = osp.join(character_root, "seg", name_str + ".png")
+                img_save_path = json_save_path.replace(".json", ".png")
+                colorize_label_image(label_path, json_save_path, img_save_path)
