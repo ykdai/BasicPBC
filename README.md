@@ -21,8 +21,9 @@ Colorizing line art is a pivotal task in the production of hand-drawn cel animat
 In this work, we introduce a new learning-based inclusion matching pipeline, which directs the network to comprehend the inclusion relationships between segments. To facilitate the training of our network, we also propose a unique dataset **PaintBucket-Character**. This dataset includes rendered line arts alongside their colorized counterparts, featuring various 3D characters.
 
 ### Update
+- **2024.04.12**: Support multiple ground-truth inference.
 - **2024.04.08**: Model inference updated. Support all resolutions and unclosed line art images.
-- **2024.03.30**: The checkpoint and training code of our BasicPBC are released.
+- **2024.03.30**: Checkpoint and training code of our BasicPBC are released.
 - **2024.03.29**: This repo is created.
 
 ### TODO
@@ -44,7 +45,7 @@ In this work, we introduce a new learning-based inclusion matching pipeline, whi
     pip install -r requirements.txt
     ```
 
-1. Install BasicPBC
+1. Install BasicPBC  
     Please run the following commands in the **BasicPBC root path** to install BasicPBC:
 
     ```bash
@@ -79,7 +80,8 @@ python basicsr/test.py -opt options/test/basicpbc_pbch_test_option.yml
 ```
 The colorized results will be saved at `results/`.
 
-To inference on your own data, put your animation clip(s) under `dataset/test/`. The clip folder should contain the colorized `gt` of the 1st frame and `line` of all frames. We provide a simple example `laughing_girl`.
+To play with your own data, put your anime clip(s) under `dataset/test/`. The clip folder should contain at least one colorized `gt` frame and `line` of all frames.  
+We also provide two simple examples: `laughing_girl` and `smoke_explosion`.
 ```
 ├── dataset 
     ├── test
@@ -90,24 +92,49 @@ To inference on your own data, put your animation clip(s) under `dataset/test/`.
                 ├── 0000.png
                 ├── 0001.png
                 ├── ...
+        ├── smoke_explosion
+            ├── gt
+            ├── line
 ```
-Run the `inference_line_frames.py` by using:
+To inference on `laughing_girl`, run `inference_line_frames.py` by using:
 ```bash
 python inference_line_frames.py --path dataset/test/laughing_girl
 ```
+Or run this to try with `smoke_explosion`:
+```bash
+python inference_line_frames.py --path dataset/test/smoke_explosion/  --mode nearest
+```
 Find results under `results/`.
 
-If your anime clip contains unclosed line art images, try running with our new argument `--seg_type trappedball`. To use this feature, first clone the LineFiller repository (acknowledge <a href="https://github.com/hepesu">@HEPESU</a>):
-```bash
-# under BasicPBC root directory:
-git clone https://github.com/hepesu/LineFiller.git
-```
+`inference_line_frames.py` provides several arguments for different use cases.  
+
+- `--mode` can be either `forward` or `nearest`. By default, `forward` processes your frames sequentially. If set `nearest`, frames will be predicted from the nearest ***gt***. e.g. Given ***gt*** *0000.png* and *0005.png*, ***line*** *0003.png* will be colored according to *0004.png* and *0004.png* is colored according to *0005.png*.  
+    ```bash
+    python inference_line_frames.py --path dataset/test/smoke_explosion/  --mode nearest
+    ```
+- `--seg_type` is `default` if not specified. It's fast and simple, but not work if your ***line*** contains unclosed region. `trappedball` is robust to this case(acknowledge <a href="https://github.com/hepesu/LineFiller">@hepesu/LineFiller</a>). To decide which one to use, you can first set `default` together with `--save_color_seg`. It will produce colorized segmentation results. If you find out that some segments are not seperated properly, switch to `trappedball`.
+    ```bash
+    python inference_line_frames.py --path dataset/test/smoke_explosion/  --seg_type trappedball
+    ```
+- `--multi_clip` is used if you would like to inference on many clips at the same time. Put all clips within a single folder under `dataset/test/`, e.g.:
+    ```
+    ├── dataset 
+        ├── test
+            ├── your_clip_folder
+                ├── clip01
+                ├── clip02
+                ├── ...
+    ```
+    In this case, run:
+    ```bash
+    python inference_line_frames.py --path dataset/test/your_clip_folder/  --multi_clip
+    ```
 
 ### Model Training
 
 **Training with single GPU**
 
-To train a model with your own data/model, you can edit the `options/train/basicpbc_pbch_train_option.yml` and run the following codes. 
+To train a model with your own data/model, you can edit the `options/train/basicpbc_pbch_train_option.yml` and run the following command. 
 
 ```bash
 python basicsr/train.py -opt options/train/basicpbc_pbch_train_option.yml
