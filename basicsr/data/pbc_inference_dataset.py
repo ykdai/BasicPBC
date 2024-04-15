@@ -168,7 +168,7 @@ class PaintBucketInferenceDataset(AnimeInferenceDataset):
             L = len(line_list)
             if self.mode == "forward":
                 index_map = {i: i - 1 for i in range(all_gt[0], L) if i not in all_gt}  # target: ref
-                index_list = list(range(L))
+                index_list = list(index_map.keys())
             elif self.mode == "nearest":
                 index_map = {i: self._get_ref_frame_id(i, all_gt) for i in range(L) if i not in all_gt}
                 index_list = self._sort_indices(index_map)
