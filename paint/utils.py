@@ -5,8 +5,8 @@ import os
 import torch
 from glob import glob
 from PIL import Image
+from scipy import stats
 from skimage import io
-from skimage.morphology import binary_dilation, square
 from tqdm import tqdm
 
 
@@ -82,13 +82,49 @@ def read_seg_2_np(seg_path, type=np.int64):
 
 
 def read_img_2_np(img_path, channel=3, type=np.uint8):
-    img = Image.open(img_path).convert("RGB")
+    img = Image.open(img_path).convert("RGBA")
     img_np = np.array(img).astype(type)
     if len(img_np.shape) == 2:
         img_np = np.tile(img_np[..., None], (1, 1, channel))
     else:
         img_np = img_np[..., :channel]
     return img_np
+
+
+def read_line_2_np(img_path, channel=4):
+    img = Image.open(img_path)
+    img_np = np.array(img)
+
+    if img.mode == "RGBA":
+        alpha_channel = img_np[:, :, 3]
+        mask = alpha_channel > 10  # Line detection based on alpha value
+    elif img.mode == "RGB":
+        grayscale = np.mean(img_np[:, :, :3], axis=2)
+        mask = grayscale < 245  # Line detection based on grayscale value
+
+    line = np.zeros((*img_np.shape[:2], 4), dtype=np.uint8)
+    line[:, :, :3] = 255  # Set all RGB to white
+    line[:, :, 3] = np.where(mask, 255, 0)  # Set alpha: 255 for lines, 0 for background
+
+    # Copy original RGB values to new image where there are lines
+    line[mask, :3] = img_np[mask, :3]
+
+    return line[..., :channel]
+
+
+def process_gt(gt, seg):
+    recolored_gt = np.zeros_like(gt)
+
+    for seg_id in np.unique(seg):
+        indices = np.where(seg == seg_id)
+
+        colors = gt[indices[0], indices[1], :]
+        most_common_color, _ = stats.mode(colors, axis=0)
+        most_common_color = most_common_color[0]
+
+        recolored_gt[indices[0], indices[1], :] = most_common_color
+
+    return recolored_gt
 
 
 def generate_random_colors(num_colors, shuffle=True):
