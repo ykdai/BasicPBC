@@ -5,7 +5,7 @@ from skimage import measure, morphology
 
 from linefiller.linefiller.thinning import thinning
 from linefiller.linefiller.trappedball_fill import build_fill_map, flood_fill_multi, mark_fill, merge_fill, show_fill_map, trapped_ball_fill_multi
-from paint.utils import generate_random_colors, np_2_labelpng
+from paint.utils import generate_random_colors, np_2_labelpng, read_line_2_np
 
 
 class LineArt:
@@ -15,10 +15,6 @@ class LineArt:
             self.new_colorbook = new_colorbook
         else:
             self.new_colorbook = colorbook
-        if lineart_img.shape[-1] == 3:
-            mask = np.all(lineart_img == [255, 255, 255], axis=-1)
-            alpha_channel = (~mask).astype(np.uint8) * 255
-            lineart_img = np.concatenate([lineart_img, alpha_channel[..., None]], axis=-1)
         self.lineart = lineart_img
         self.alpha = lineart_img[:, :, 3]
         # binarize alpha channel
@@ -138,7 +134,8 @@ class LineArt:
 
 def trappedball_fill(img_path, save_path, radius=4, contour=False):
 
-    im = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+    im = read_line_2_np(img_path, channel=3)
+    im = cv2.cvtColor(im, cv2.COLOR_RGB2GRAY)
     ret, binary = cv2.threshold(im, 220, 255, cv2.THRESH_BINARY)
 
     fills = []
