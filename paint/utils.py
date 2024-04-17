@@ -119,8 +119,8 @@ def process_gt(gt, seg):
         indices = np.where(seg == seg_id)
 
         colors = gt[indices[0], indices[1], :]
-        most_common_color, _ = stats.mode(colors, axis=0)
-        most_common_color = most_common_color[0]
+        unique_colors, counts = np.unique(colors, axis=0, return_counts=True)
+        most_common_color = unique_colors[np.argmax(counts)]
 
         recolored_gt[indices[0], indices[1], :] = most_common_color
 
