@@ -28,7 +28,7 @@ network_g:
 
 # path
 path:
-  pretrain_network_g: experiments/basicpbc_light_train/models/net_g_150000.pth
+  pretrain_network_g: ckpt/basicpbc_light.pth
   strict_load_g: true
   resume_state: ~
   param_key_g: params_ema
