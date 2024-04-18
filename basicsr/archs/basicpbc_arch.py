@@ -684,7 +684,7 @@ class BasicPBC(nn.Module):
             is_correct = all_matches_origin[0] == indices0[0]
             accuracy = (is_correct.sum() / len(all_matches_origin[0])).item()
             correct_indices = torch.arange(len(all_matches_origin[0]), device=is_correct.device)[is_correct]
-            area_accuracy = (torch.tensor([(data["segment"] == idx + 1).sum() for idx in correct_indices]).sum() / data["numpt"].sum()).item()
+            area_accuracy = (torch.tensor([(data["segment"] == idx + 1).sum() for idx in correct_indices]).sum() / data["numpixels"].sum()).item()
             is_valid = all_matches_origin[0] != -1
             valid_accuracy = ((is_correct & is_valid).sum() / is_valid.sum()).item()
             invalid_accuracy = ((is_correct & ~is_valid).sum() / (~is_valid).sum()).item() if (~is_valid).sum() > 0 else None

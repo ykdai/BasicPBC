@@ -457,7 +457,7 @@ class BasicPBC_light(nn.Module):
 
         scores = transport(scores, self.bin_score)
 
-        weights = data["numpt"].float()  # .cuda()
+        weights = data["numpixels"].float()  # .cuda()
         all_matches_origin = all_matches.clone() if all_matches is not None else None
 
         if all_matches is not None:
