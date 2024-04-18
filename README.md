@@ -21,6 +21,7 @@ Colorizing line art is a pivotal task in the production of hand-drawn cel animat
 In this work, we introduce a new learning-based inclusion matching pipeline, which directs the network to comprehend the inclusion relationships between segments. To facilitate the training of our network, we also propose a unique dataset **PaintBucket-Character**. This dataset includes rendered line arts alongside their colorized counterparts, featuring various 3D characters.
 
 ### Update
+- **2024.04.18**: Light-weighted model released.
 - **2024.04.12**: Support multiple ground-truth inference.
 - **2024.04.08**: Model inference updated. Support all resolutions and unclosed line art images.
 - **2024.03.30**: Checkpoint and training code of our BasicPBC are released.
@@ -28,7 +29,7 @@ In this work, we introduce a new learning-based inclusion matching pipeline, whi
 
 ### TODO
 - [X] Add trapped-ball segmentation module for unclosed line arts inference.
-- [ ] Add a lightweight BasicPBC which can process images in 2K resolution without encountering Out-Of-Memory (OOM) error on 8GB RAM GPU.
+- [X] Add a lightweight BasicPBC which can process images in 2K resolution without encountering Out-Of-Memory (OOM) error on 16GB RAM GPU.
 
 ### Installation
 
@@ -67,9 +68,10 @@ Due to copyright issues, we do not provide download links for the real hand-draw
 
 You can download the pretrained checkpoints from the following links. Please place it under the `ckpt` folder and unzip it, then you can run the `basicsr/test.py` for inference. 
 
-|  Google Drive   |  Baidu Netdisk  |
-| :-------------: | :-------------: |
-| [link](https://drive.google.com/file/d/1QOUaulX9-mZo5wyKpWw_9QUKkRwBwMU2/view?usp=sharing)  | [link](https://pan.baidu.com/s/1CCbtoQmzYs8Q2rvSHL9-5w?pwd=cvpr) |
+|     |  Google Drive   |  Baidu Netdisk  |
+| :--- | :-------------: | :-------------: |
+| Base | [link](https://drive.google.com/file/d/1QOUaulX9-mZo5wyKpWw_9QUKkRwBwMU2/view?usp=sharing)  | [link](https://pan.baidu.com/s/1CCbtoQmzYs8Q2rvSHL9-5w?pwd=cvpr) |
+<!-- | Light | [link]()  | [link]() | -->
 
 We also have plans to release a lightweight model, please stay tuned!🤗
 
@@ -77,6 +79,10 @@ We also have plans to release a lightweight model, please stay tuned!🤗
 To estimate the colorized frames with our checkpoint trained on PaintBucket-Character, you can run the `basicsr/test.py` by using:
 ```bash
 python basicsr/test.py -opt options/test/basicpbc_pbch_test_option.yml
+```
+Or you can test the lightweight model by:
+```bash
+python basicsr/test.py -opt options/test/basicpbc_light_test_option.yml
 ```
 The colorized results will be saved at `results/`.
 
@@ -116,6 +122,7 @@ Find results under `results/`.
     ```bash
     python inference_line_frames.py --path dataset/test/smoke_explosion/  --seg_type trappedball
     ```
+- `--use_light_model` will use the light-weighted model for inference. Add this if working on low memory GPU.
 - `--multi_clip` is used if you would like to inference on many clips at the same time. Put all clips within a single folder under `dataset/test/`, e.g.:
     ```
     ├── dataset 

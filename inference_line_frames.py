@@ -8,6 +8,7 @@ from skimage import io, measure
 from torchvision.utils import save_image
 
 from basicsr.archs.basicpbc_arch import BasicPBC
+from basicsr.archs.basicpbc_light_arch import BasicPBC_light
 from basicsr.data.pbc_inference_dataset import PaintBucketInferenceDataset
 from basicsr.models.pbc_model import ModelInference
 from paint.colorlabel import ColorLabel
@@ -101,6 +102,7 @@ if __name__ == "__main__":
     parser.add_argument("--skip_seg", action="store_true", help="used when `seg` already exists.")
     parser.add_argument("--radius", type=int, default=4, help="used together with `--seg_type trappedball`. Increase the value if unclosed pixels' high.")
     parser.add_argument("--save_color_seg", action="store_true", help="add this arg to show colorized segment results. It's a must when `trappedball` chosen.")
+    parser.add_argument("--use_light_model", action="store_true", help="add this to use light-weighted model on low memory GPU.")
     parser.add_argument(
         "--multi_clip", action="store_true", help="used for multi-clip inference. Set `path` to a folder where each sub-folder is a single clip."
     )
@@ -112,22 +114,35 @@ if __name__ == "__main__":
     skip_seg = args.skip_seg
     radius = args.radius
     save_color_seg = args.save_color_seg
+    use_light_model = args.use_light_model
     multi_clip = args.multi_clip
 
     if not skip_seg:
         generate_seg(path, seg_type, radius, save_color_seg, multi_clip)
 
-    ckpt_path = "ckpt/basicpbc.pth"
-    model = BasicPBC(
-        ch_in=6,
-        descriptor_dim=128,
-        keypoint_encoder=[32, 64, 128],
-        GNN_layer_num=9,
-        use_clip=True,
-        encoder_resolution=(640, 640),
-        raft_resolution=(320, 320),
-        clip_resolution=(320, 320),
-    )
+    if use_light_model:
+        ckpt_path = "ckpt/basicpbc_light.pth"
+        model = BasicPBC_light(
+            descriptor_dim=128,
+            keypoint_encoder=[32, 64, 128],
+            GNN_layer_num=6,
+            token_scale_list=[1, 3],
+            token_crop_size=64,
+            use_clip=True,
+        )
+    else:
+        ckpt_path = "ckpt/basicpbc.pth"
+        model = BasicPBC(
+            ch_in=6,
+            descriptor_dim=128,
+            keypoint_encoder=[32, 64, 128],
+            GNN_layer_num=9,
+            use_clip=True,
+            encoder_resolution=(640, 640),
+            raft_resolution=(320, 320),
+            clip_resolution=(320, 320),
+        )
+
     model = model.cuda()
     model.load_state_dict(load_params(ckpt_path))
     model.eval()
