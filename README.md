@@ -88,6 +88,8 @@ The colorized results will be saved at `results/`.
 
 To play with your own data, put your anime clip(s) under `dataset/test/`. The clip folder should contain at least one colorized `gt` frame and `line` of all frames.  
 We also provide two simple examples: `laughing_girl` and `smoke_explosion`.
+To play with your own data, put your anime clip(s) under `dataset/test/`. The clip folder should contain at least one colorized `gt` frame and `line` of all frames.  
+We also provide two simple examples: `laughing_girl` and `smoke_explosion`.
 ```
 ├── dataset 
     ├── test
@@ -141,6 +143,7 @@ Find results under `results/`.
 
 **Training with single GPU**
 
+To train a model with your own data/model, you can edit the `options/train/basicpbc_pbch_train_option.yml` and run the following command. 
 To train a model with your own data/model, you can edit the `options/train/basicpbc_pbch_train_option.yml` and run the following command. 
 
 ```bash
