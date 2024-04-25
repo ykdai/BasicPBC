@@ -197,12 +197,12 @@ class AnimeSegMatDataset(data.Dataset):
         if self.augmentor is not None:
             line, line_ref, seg, seg_ref = self.augmentor(line, line_ref, seg, seg_ref)
 
-        kpt = []
-        kpt_ref = []
-        cpt = []
-        cpt_ref = []
-        numpt = []
-        numpt_ref = []
+        keypoints = []
+        keypoints_ref = []
+        centerpoints = []
+        centerpoints_ref = []
+        numpixels = []
+        numpixels_ref = []
 
         h, w = seg.shape
         hh = np.arange(h)
@@ -226,9 +226,9 @@ class AnimeSegMatDataset(data.Dataset):
             xmean = xs.mean()
             ymean = ys.mean()
 
-            cpt.append([xmean, ymean])
-            numpt.append((seg == ii).sum())
-            kpt.append([xmin, xmax, ymin, ymax])
+            centerpoints.append([xmean, ymean])
+            numpixels.append((seg == ii).sum())
+            keypoints.append([xmin, xmax, ymin, ymax])
 
         seg_ref_list = sorted(Counter(seg_ref.reshape(-1)))
         for ii in seg_ref_list:
@@ -244,24 +244,24 @@ class AnimeSegMatDataset(data.Dataset):
             xmean = xs.mean()
             ymean = ys.mean()
 
-            cpt_ref.append([xmean, ymean])
-            numpt_ref.append((seg_ref == ii).sum())
-            kpt_ref.append([xmin, xmax, ymin, ymax])
+            centerpoints_ref.append([xmean, ymean])
+            numpixels_ref.append((seg_ref == ii).sum())
+            keypoints_ref.append([xmin, xmax, ymin, ymax])
 
-        kpt = np.stack(kpt)
-        kpt_ref = np.stack(kpt_ref)
-        cpt = np.stack(cpt)
-        cpt_ref = np.stack(cpt_ref)
-        numpt = np.stack(numpt)
-        numpt_ref = np.stack(numpt_ref)
+        keypoints = np.stack(keypoints)
+        keypoints_ref = np.stack(keypoints_ref)
+        centerpoints = np.stack(centerpoints)
+        centerpoints_ref = np.stack(centerpoints_ref)
+        numpixels = np.stack(numpixels)
+        numpixels_ref = np.stack(numpixels_ref)
 
         # image output [0, 1]
         line = torch.from_numpy(line).permute(2, 0, 1).float() / 255.0
         line_ref = torch.from_numpy(line_ref).permute(2, 0, 1).float() / 255.0
         seg = torch.from_numpy(seg)[None]
         seg_ref = torch.from_numpy(seg_ref)[None]
-        numpt = torch.from_numpy(numpt)[None]
-        numpt_ref = torch.from_numpy(numpt_ref)[None]
+        numpixels = torch.from_numpy(numpixels)[None]
+        numpixels_ref = torch.from_numpy(numpixels_ref)[None]
 
         if self.color_redistribution_type == "seg":
             recolorized_img = recolorize_seg(seg_ref)
@@ -272,14 +272,14 @@ class AnimeSegMatDataset(data.Dataset):
             recolorized_img = torch.Tensor(0)
 
         return {
-            "keypoints": kpt,
-            "keypoints_ref": kpt_ref,
-            "centerpoints": cpt,
-            "centerpoints_ref": cpt_ref,
+            "keypoints": keypoints,
+            "keypoints_ref": keypoints_ref,
+            "centerpoints": centerpoints,
+            "centerpoints_ref": centerpoints_ref,
             "line": line,
             "line_ref": line_ref,
-            "numpt": numpt,
-            "numpt_ref": numpt_ref,
+            "numpixels": numpixels,
+            "numpixels_ref": numpixels_ref,
             "segment": seg,
             "segment_ref": seg_ref,
             "recolorized_img": recolorized_img,

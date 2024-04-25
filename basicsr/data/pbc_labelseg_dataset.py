@@ -132,9 +132,9 @@ class AnimeLabelSegDataset(data.Dataset):
         mat_index = [(label_ref_list.index(seg_label_idx_map[x]) if seg_label_idx_map[x] in label_ref_list else -1) for x in seg_list]
         mat_index = np.array(mat_index).astype(np.int64)
 
-        kpt = []
-        cpt = []
-        numpt = []
+        keypoints = []
+        centerpoints = []
+        numpixels = []
 
         h, w = seg.shape
         hh = np.arange(h)
@@ -155,15 +155,15 @@ class AnimeLabelSegDataset(data.Dataset):
             xmean = xs.mean()
             ymean = ys.mean()
 
-            cpt.append([xmean, ymean])
-            numpt.append(mask.sum())
-            kpt.append([xmin, xmax, ymin, ymax])
+            centerpoints.append([xmean, ymean])
+            numpixels.append(mask.sum())
+            keypoints.append([xmin, xmax, ymin, ymax])
             seg_relabeled[mask] = i + 1  # 0 is for the black line,starts from 1
 
         label_ref_index = 1
-        kpt_ref = []
-        cpt_ref = []
-        numpt_ref = []
+        keypoints_ref = []
+        centerpoints_ref = []
+        numpixels_ref = []
         label_ref_relabeled = np.zeros_like(label_ref)
 
         for i, label_idx in enumerate(label_ref_list):
@@ -190,13 +190,13 @@ class AnimeLabelSegDataset(data.Dataset):
             ymean = ys.mean()
 
             if merge:
-                cpt_ref[selected_label - 1] = [xmean, ymean]
-                numpt_ref[selected_label - 1] = mask.sum()
-                kpt_ref[selected_label - 1] = [xmin, xmax, ymin, ymax]
+                centerpoints_ref[selected_label - 1] = [xmean, ymean]
+                numpixels_ref[selected_label - 1] = mask.sum()
+                keypoints_ref[selected_label - 1] = [xmin, xmax, ymin, ymax]
             else:
-                cpt_ref.append([xmean, ymean])
-                numpt_ref.append(mask.sum())
-                kpt_ref.append([xmin, xmax, ymin, ymax])
+                centerpoints_ref.append([xmean, ymean])
+                numpixels_ref.append(mask.sum())
+                keypoints_ref.append([xmin, xmax, ymin, ymax])
 
             # All the token which marks
             mat_index = np.where(mat_index == i, selected_label - 1, mat_index)
@@ -204,20 +204,20 @@ class AnimeLabelSegDataset(data.Dataset):
         seg = seg_relabeled
         label_ref = label_ref_relabeled
 
-        kpt = np.stack(kpt)
-        kpt_ref = np.stack(kpt_ref)
-        cpt = np.stack(cpt)
-        cpt_ref = np.stack(cpt_ref)
-        numpt = np.stack(numpt)
-        numpt_ref = np.stack(numpt_ref)
+        keypoints = np.stack(keypoints)
+        keypoints_ref = np.stack(keypoints_ref)
+        centerpoints = np.stack(centerpoints)
+        centerpoints_ref = np.stack(centerpoints_ref)
+        numpixels = np.stack(numpixels)
+        numpixels_ref = np.stack(numpixels_ref)
 
         # image output [0, 1]
         line = torch.from_numpy(line).permute(2, 0, 1).float() / 255.0
         line_ref = torch.from_numpy(line_ref).permute(2, 0, 1).float() / 255.0
         seg = torch.from_numpy(seg)[None]
         label_ref = torch.from_numpy(label_ref)[None]
-        numpt = torch.from_numpy(numpt)[None]
-        numpt_ref = torch.from_numpy(numpt_ref)[None]
+        numpixels = torch.from_numpy(numpixels)[None]
+        numpixels_ref = torch.from_numpy(numpixels_ref)[None]
 
         if self.color_redistribution_type == "seg":
             recolorized_img = recolorize_seg(label_ref)
@@ -227,14 +227,14 @@ class AnimeLabelSegDataset(data.Dataset):
         mat_index = torch.from_numpy(mat_index).float()
 
         return {
-            "keypoints": kpt,
-            "keypoints_ref": kpt_ref,
-            "centerpoints": cpt,
-            "centerpoints_ref": cpt_ref,
+            "keypoints": keypoints,
+            "keypoints_ref": keypoints_ref,
+            "centerpoints": centerpoints,
+            "centerpoints_ref": centerpoints_ref,
             "line": line,
             "line_ref": line_ref,
-            "numpt": numpt,
-            "numpt_ref": numpt_ref,
+            "numpixels": numpixels,
+            "numpixels_ref": numpixels_ref,
             "segment": seg,
             "segment_ref": label_ref,
             "recolorized_img": recolorized_img,

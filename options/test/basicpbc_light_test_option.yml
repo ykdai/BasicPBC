@@ -1,0 +1,55 @@
+# general settings
+name: basicpbc_light_test
+model_type: PBCModel
+scale: 1
+num_gpu: 1  # set num_gpu: 0 for cpu mode
+manual_seed: 42
+
+# dataset and data loader settings
+datasets:
+  val:
+    name: PaintBucket_Char
+    type: PaintBucketSegMat
+    root: dataset/test/PaintBucket_Char/
+    dstype: contour
+    split: test
+    is_png_seg: true
+    color_redistribution_type: gt
+
+# network structures
+network_g:
+  type: BasicPBC_light
+  descriptor_dim: 128
+  keypoint_encoder: [32, 64, 128]
+  GNN_layer_num: 6
+  token_scale_list: [1, 3]
+  token_crop_size: 64
+  use_clip: true
+
+# path
+path:
+  pretrain_network_g: ckpt/basicpbc_light.pth
+  strict_load_g: true
+  resume_state: ~
+  param_key_g: params_ema
+
+# validation settings
+val:
+  val_freq: !!float 5e4
+  save_img: true
+  save_csv: true
+  accu: true
+
+  metrics:
+    acc: # metric name
+      type: none  # can be arbitrary
+    acc_thres:
+      type: none
+    pix_acc:
+      type: none
+    pix_acc_wobg:
+      type: none
+    bmiou:
+      type: none
+    pix_bmiou:
+      type: none
