@@ -70,10 +70,9 @@ You can download the pretrained checkpoints from the following links. Please pla
 
 |     |  Google Drive   |  Baidu Netdisk  |
 | :--- | :-------------: | :-------------: |
-| Base | [link](https://drive.google.com/file/d/1QOUaulX9-mZo5wyKpWw_9QUKkRwBwMU2/view?usp=sharing)  | [link](https://pan.baidu.com/s/1CCbtoQmzYs8Q2rvSHL9-5w?pwd=cvpr) |
-| Light | [link](https://drive.google.com/file/d/1Oq_4Kk8AbjmIKOwufYNmRpu9WdasTxiR/view?usp=drive_link)  | [link](https://pan.baidu.com/s/1EwiaORp7I7lWRud1iVlM-w?pwd=cvpr ) |
+| BasicPBC | [link](https://drive.google.com/file/d/1QOUaulX9-mZo5wyKpWw_9QUKkRwBwMU2/view?usp=sharing)  | [link](https://pan.baidu.com/s/1CCbtoQmzYs8Q2rvSHL9-5w?pwd=cvpr) |
+| BasicPBC-Light | [link](https://drive.google.com/file/d/1Oq_4Kk8AbjmIKOwufYNmRpu9WdasTxiR/view?usp=drive_link)  | [link](https://pan.baidu.com/s/1EwiaORp7I7lWRud1iVlM-w?pwd=cvpr ) |
 
-We also have plans to release a lightweight model, please stay tuned!🤗
 
 ### Model Inference
 To estimate the colorized frames with our checkpoint trained on PaintBucket-Character, you can run the `basicsr/test.py` by using:
