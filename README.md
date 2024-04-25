@@ -21,7 +21,7 @@ Colorizing line art is a pivotal task in the production of hand-drawn cel animat
 In this work, we introduce a new learning-based inclusion matching pipeline, which directs the network to comprehend the inclusion relationships between segments. To facilitate the training of our network, we also propose a unique dataset **PaintBucket-Character**. This dataset includes rendered line arts alongside their colorized counterparts, featuring various 3D characters.
 
 ### Update
-- **2024.04.18**: Light-weighted model released.
+- **2024.04.25**: Light-weighted model released.
 - **2024.04.12**: Support multiple ground-truth inference.
 - **2024.04.08**: Model inference updated. Support all resolutions and unclosed line art images.
 - **2024.03.30**: Checkpoint and training code of our BasicPBC are released.
@@ -71,7 +71,7 @@ You can download the pretrained checkpoints from the following links. Please pla
 |     |  Google Drive   |  Baidu Netdisk  |
 | :--- | :-------------: | :-------------: |
 | Base | [link](https://drive.google.com/file/d/1QOUaulX9-mZo5wyKpWw_9QUKkRwBwMU2/view?usp=sharing)  | [link](https://pan.baidu.com/s/1CCbtoQmzYs8Q2rvSHL9-5w?pwd=cvpr) |
-<!-- | Light | [link]()  | [link]() | -->
+| Light | [link](https://drive.google.com/file/d/1Oq_4Kk8AbjmIKOwufYNmRpu9WdasTxiR/view?usp=drive_link)  | [link](https://pan.baidu.com/s/1EwiaORp7I7lWRud1iVlM-w?pwd=cvpr ) |
 
 We also have plans to release a lightweight model, please stay tuned!🤗
 
@@ -122,7 +122,7 @@ Find results under `results/`.
     ```bash
     python inference_line_frames.py --path dataset/test/smoke_explosion/  --seg_type trappedball
     ```
-- `--use_light_model` will use the light-weighted model for inference. Add this if working on low memory GPU.
+- `--use_light_model` will use the light-weighted model for inference. Add this if working on low memory GPU. Notice that this argument may produce poorer results than the base model.
 - `--multi_clip` is used if you would like to inference on many clips at the same time. Put all clips within a single folder under `dataset/test/`, e.g.:
     ```
     ├── dataset 
