@@ -548,9 +548,6 @@ class BasicPBC(nn.Module):
         encoder_resolution=None,
         raft_resolution=None,
         clip_resolution=(320, 320),
-        encoder_resolution=None,
-        raft_resolution=None,
-        clip_resolution=(320, 320),
     ):
         super().__init__()
 
