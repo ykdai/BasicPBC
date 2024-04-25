@@ -406,21 +406,13 @@ class SegmentDescriptor(nn.Module):
         super().__init__()
         self.encoder_resolution = encoder_resolution
         self.encoder = UNet(enc_dim, ch_in, use_clip, clip_resolution)
-        self.encoder_resolution = encoder_resolution
-        self.encoder = UNet(enc_dim, ch_in, use_clip, clip_resolution)
 
     def forward(self, img, seg, line=None, use_offset=False):
         h, w = img.size()[-2:]
         if self.encoder_resolution:
             img = F.interpolate(img, self.encoder_resolution, mode="bilinear", align_corners=False)
             line = F.interpolate(line, self.encoder_resolution, mode="nearest") if line is not None else None
-        h, w = img.size()[-2:]
-        if self.encoder_resolution:
-            img = F.interpolate(img, self.encoder_resolution, mode="bilinear", align_corners=False)
-            line = F.interpolate(line, self.encoder_resolution, mode="nearest") if line is not None else None
         x = self.encoder(img, line, use_offset)
-        x = F.interpolate(x, (h, w), mode="bilinear", align_corners=False)
-        n, c, nh, nw = x.size()
         x = F.interpolate(x, (h, w), mode="bilinear", align_corners=False)
         n, c, nh, nw = x.size()
         return super_pixel_pooling(x.view(n, c, -1), seg.view(-1).long(), reduce="mean")
@@ -561,9 +553,6 @@ class BasicPBC(nn.Module):
         config.encoder_resolution = encoder_resolution
         config.raft_resolution = raft_resolution
         config.clip_resolution = clip_resolution
-        config.encoder_resolution = encoder_resolution
-        config.raft_resolution = raft_resolution
-        config.clip_resolution = clip_resolution
 
         self.config = config
 
@@ -590,9 +579,6 @@ class BasicPBC(nn.Module):
         self.segment_desc = SegmentDescriptor(
             self.config.descriptor_dim, self.config.ch_in, self.config.use_clip, self.config.encoder_resolution, self.config.clip_resolution
         )
-        self.segment_desc = SegmentDescriptor(
-            self.config.descriptor_dim, self.config.ch_in, self.config.use_clip, self.config.encoder_resolution, self.config.clip_resolution
-        )
 
     def forward(self, data):
         """Run SuperGlue on a pair of keypoints and descriptors"""
@@ -613,23 +599,13 @@ class BasicPBC(nn.Module):
             line = F.interpolate(line, self.config.raft_resolution, mode="bilinear", align_corners=False)
             line_ref = F.interpolate(line_ref, self.config.raft_resolution, mode="bilinear", align_corners=False)
             color_ref = F.interpolate(color_ref, self.config.raft_resolution, mode="bilinear", align_corners=False)
-        line, line_ref, color_ref = data["line"], data["line_ref"], data["recolorized_img"]
-        h, w = line.shape[-2:]
-        if self.config.raft_resolution:
-            line = F.interpolate(line, self.config.raft_resolution, mode="bilinear", align_corners=False)
-            line_ref = F.interpolate(line_ref, self.config.raft_resolution, mode="bilinear", align_corners=False)
-            color_ref = F.interpolate(color_ref, self.config.raft_resolution, mode="bilinear", align_corners=False)
         self.raft.eval()
-        _, flow_up = self.raft(line, line_ref, iters=20, test_mode=True)
-        warpped_img = flow_warp(color_ref, flow_up.permute(0, 2, 3, 1).detach(), "nearest")
-        warpped_img = F.interpolate(warpped_img, (h, w), mode="bilinear", align_corners=False)
         _, flow_up = self.raft(line, line_ref, iters=20, test_mode=True)
         warpped_img = flow_warp(color_ref, flow_up.permute(0, 2, 3, 1).detach(), "nearest")
         warpped_img = F.interpolate(warpped_img, (h, w), mode="bilinear", align_corners=False)
 
         if self.config.ch_in == 6:
             warpped_target_img = torch.cat((warpped_img, data["line"]), dim=1)
-            warpped_ref_img = torch.cat((data["recolorized_img"], data["line_ref"]), dim=1)
             warpped_ref_img = torch.cat((data["recolorized_img"], data["line_ref"]), dim=1)
         else:
             assert False, "Input channel only supports 6 with 3 as line and 3 as color."
@@ -708,7 +684,7 @@ class BasicPBC(nn.Module):
             is_correct = all_matches_origin[0] == indices0[0]
             accuracy = (is_correct.sum() / len(all_matches_origin[0])).item()
             correct_indices = torch.arange(len(all_matches_origin[0]), device=is_correct.device)[is_correct]
-            area_accuracy = (torch.tensor([(data["segment"] == idx + 1).sum() for idx in correct_indices]).sum() / data["numpixels"].sum()).item()
+            area_accuracy = (torch.tensor([(data["segment"] == idx + 1).sum() for idx in correct_indices]).sum() / data["numpt"].sum()).item()
             is_valid = all_matches_origin[0] != -1
             valid_accuracy = ((is_correct & is_valid).sum() / is_valid.sum()).item()
             invalid_accuracy = ((is_correct & ~is_valid).sum() / (~is_valid).sum()).item() if (~is_valid).sum() > 0 else None
@@ -719,9 +695,6 @@ class BasicPBC(nn.Module):
                 "matching_scores0": mscores0[0],
                 "loss": loss,
                 "skip_train": False,
-                "accuracy": accuracy,
-                "area_accuracy": area_accuracy,
-                "valid_accuracy": valid_accuracy,
                 "accuracy": accuracy,
                 "area_accuracy": area_accuracy,
                 "valid_accuracy": valid_accuracy,
