@@ -28,7 +28,7 @@ In this work, we introduce a new learning-based inclusion matching pipeline, whi
 - **2024.03.29**: This repo is created.
 
 ### TODO
-- [ ] Add google colab inference module.
+- [ ] Add google colab inference script.
 - [X] Add trapped-ball segmentation module for unclosed line arts inference.
 - [X] Add a lightweight BasicPBC which can process images in 2K resolution without encountering Out-Of-Memory (OOM) error on 16GB RAM GPU.
 
