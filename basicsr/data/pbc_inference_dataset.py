@@ -37,16 +37,18 @@ class AnimeInferenceDataset(data.Dataset):
 
         if nh > nw:
             # Width is smaller, pad left and right
-            line = np.pad(line, ((0, 0), (pad1, pad2), (0, 0)), constant_values=255)
+            line = np.pad(line, ((0, 0), (pad1, pad2), (0, 0)), constant_values=255) #default is 255
             seg = np.pad(seg, ((0, 0), (pad1, pad2)), constant_values=0)  # 0 will be ignored
             if gt is not None:
-                gt = np.pad(gt, ((0, 0), (pad1, pad2), (0, 0)), mode="edge")
+                #gt = np.pad(gt, ((0, 0), (pad1, pad2), (0, 0)), mode="edge")
+                gt = np.pad(gt, ((0, 0), (pad1, pad2), (0, 0)), constant_values=0)
         else:
             # Height is smaller, pad top and bottom
-            line = np.pad(line, ((pad1, pad2), (0, 0), (0, 0)), constant_values=255)
+            line = np.pad(line, ((pad1, pad2), (0, 0), (0, 0)), constant_values=255) #default is 255
             seg = np.pad(seg, ((pad1, pad2), (0, 0)), constant_values=0)
             if gt is not None:
-                gt = np.pad(gt, ((pad1, pad2), (0, 0), (0, 0)), mode="edge")
+                #gt = np.pad(gt, ((pad1, pad2), (0, 0), (0, 0)), mode="edge")
+                gt = np.pad(gt, ((pad1, pad2), (0, 0), (0, 0)), constant_values=0)
 
         return line, seg, gt if gt is not None else None
 

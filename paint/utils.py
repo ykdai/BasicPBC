@@ -97,10 +97,10 @@ def read_line_2_np(img_path, channel=4):
 
     if img.mode == "RGBA":
         alpha_channel = img_np[:, :, 3]
-        mask = alpha_channel > 10  # Line detection based on alpha value
+        mask = alpha_channel > 100  # Line detection based on alpha value, default is 10
     elif img.mode == "RGB":
         grayscale = np.mean(img_np[:, :, :3], axis=2)
-        mask = grayscale < 245  # Line detection based on grayscale value
+        mask = grayscale < 150  # Line detection based on grayscale value, default is 245
 
     line = np.zeros((*img_np.shape[:2], 4), dtype=np.uint8)
     line[:, :, :3] = 255  # Set all RGB to white
@@ -190,9 +190,15 @@ def recolorize_img(img):
     # Recolorize the image using the generated color mapping
     recolored_img = np.zeros_like(img, dtype=np.uint8)
     # Iterate over unique colors and their masks, change color using mask
+    print(len(color_mapping.items()))
     for color, new_color in color_mapping.items():
         mask = np.all(img == color, axis=-1)
         recolored_img[mask] = new_color
+    
+    image_save = Image.fromarray(recolored_img)
+    path = 'recolorized_image.png'
+    image_save.save(path)
+
     return recolored_img
 
 

@@ -22,6 +22,7 @@ class LineArt:
         self.line_black = np.all(self.lineart == [0, 0, 0, 255], axis=-1)
         # Converte binarized alpha channel to label image
         self.label_img = measure.label(self.line_all, connectivity=1)
+        self.erase_single_pixels(3)
         self.label_hightlight_shadow = [1] * (self.label_img.max() + 1)  # 0 means highlight, 1 means normal and 2/3 means shadow1/2
 
     def relabel(self):
