@@ -7,7 +7,7 @@ from basicsr.utils.download_util import load_file_from_url
 
 def download_pretrained_models(file_name, file_url):
     save_path_root = f'./ckpt/'
-    save_path = f'./ckpt/{file_name}'
+    save_path = f'{file_name}'
     os.makedirs(save_path_root, exist_ok=True)
 
     save_path = load_file_from_url(url=file_url, model_dir=save_path_root, progress=True, file_name=save_path)

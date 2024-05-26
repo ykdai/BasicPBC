@@ -204,7 +204,7 @@ def build_fill_map(image, fills):
     # Returns
         an array.
     """
-    result = np.zeros(image.shape[:2], np.int)
+    result = np.zeros(image.shape[:2], np.int32)
 
     for index, fill in enumerate(fills):
         result[fill] = index + 1

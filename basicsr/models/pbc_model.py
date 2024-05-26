@@ -195,9 +195,12 @@ class ModelInference:
         set_random_seed(seed)
 
     def _recover_seed(self):
-        random.setstate(self.py_rng_state0)
-        np.random.set_state(self.np_rng_state0)
-        torch.set_rng_state(self.torch_rng_state0)
+        if hasattr(self, 'py_rng_state0'):
+            random.setstate(self.py_rng_state0)
+        if hasattr(self, 'np_rng_state0'):
+            np.random.set_state(self.np_rng_state0)
+        if hasattr(self, 'torch_rng_state0'):
+            torch.set_rng_state(self.torch_rng_state0)
 
     def dis_data_to_cuda(self, data):
         for key in data.keys():
