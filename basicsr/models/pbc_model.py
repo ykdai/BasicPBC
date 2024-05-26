@@ -16,7 +16,7 @@ from basicsr.losses import build_loss
 from basicsr.models.sr_model import SRModel
 from basicsr.utils import get_root_logger, set_random_seed
 from basicsr.utils.registry import MODEL_REGISTRY
-from paint.utils import colorize_label_image, dump_json, eval_json_folder, evaluate, load_json, read_img_2_np, recolorize_gt
+from paint.utils import colorize_label_image, dump_json, eval_json_folder, evaluate, load_json, read_img_2_np, recolorize_gt, merge_color_line
 
 
 @MODEL_REGISTRY.register()
@@ -244,7 +244,7 @@ class ModelInference:
                     img_save_path = json_save_path.replace(".json", ".png")
                     colorize_label_image(label_path, json_save_path, img_save_path)
 
-    def inference_multi_gt(self, save_path):
+    def inference_multi_gt(self, save_path, keep_line=False):
         with torch.no_grad():
             self.model.eval()
             characters = set()
@@ -254,16 +254,25 @@ class ModelInference:
                 _, character_name = osp.split(character_root)
 
                 save_folder = osp.join(save_path, character_name)
+                save_folder_keepline = osp.join(save_path, character_name+'_keepline')
                 if character_name not in characters:
                     characters.add(character_name)
                     os.makedirs(save_folder, exist_ok=True)
+                    if keep_line:
+                        os.makedirs(save_folder_keepline, exist_ok=True)
+                    
                     gt_root = line_root.replace("line", "gt")
                     for gt_path in glob(osp.join(gt_root, "*.png")):
+                        # process the ground truth
                         json_path = gt_path.replace("gt", "seg").replace("png", "json")
                         shutil.copy(gt_path, save_folder)
                         shutil.copy(json_path, save_folder)
                         print(gt_path, "is given.")
-
+                        if keep_line:
+                            line_path=gt_path.replace("gt", "line")
+                            merged_img_save_path= gt_path.replace("gt", character_name+'_keepline')
+                            merge_color_line(line_path,gt_path,merged_img_save_path)
+                        
                 _, name_str_ref = osp.split(test_data["file_name_ref"][0])
                 json_path_ref = osp.join(save_folder, name_str_ref + ".json")
                 color_dict = load_json(json_path_ref)
@@ -284,3 +293,9 @@ class ModelInference:
                 label_path = osp.join(character_root, "seg", name_str + ".png")
                 img_save_path = json_save_path.replace(".json", ".png")
                 colorize_label_image(label_path, json_save_path, img_save_path)
+
+                if keep_line:
+                    line_path=osp.join(save_path, 'line', name_str + ".png")
+                    merged_img_save_path= osp.join(save_folder_keepline, name_str + ".png")
+                    merge_color_line(line_path,img_save_path,merged_img_save_path)
+                    print("image saved at", merged_img_save_path)

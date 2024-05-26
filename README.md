@@ -124,6 +124,9 @@ Find results under `results/`.
     ```bash
     python inference_line_frames.py --path dataset/test/smoke_explosion/  --seg_type trappedball
     ```
+- `--skip_seg` can help your skip the segmentation part. You can use it when `seg` already exists.
+- `--keep_line` will generate another folder named `[your_clip]_keepline` which merges the original line in the `line` folder with the colorized output. This config is mainly for the line drawn not by the binary pen.
+- `--raft_res` can change the resolution for the optical flow estimation (default is 640). We notice that sometimes the performance is bad due to he wrong optical flow estimation. Thus, if the performance is not satisfied on your case, you can change this to 640 to have a try by using `--raft_res 640`.
 - `--use_light_model` will use the light-weighted model for inference. Add this if working on low memory GPU. Notice that this argument may produce poorer results than the base model.
 - `--multi_clip` is used if you would like to inference on many clips at the same time. Put all clips within a single folder under `dataset/test/`, e.g.:
     ```

@@ -6,7 +6,9 @@ import torch
 from glob import glob
 from PIL import Image
 from scipy import stats
-from skimage import io
+from skimage import io,img_as_ubyte
+from skimage.morphology import disk, binary_dilation
+from skimage.restoration import inpaint
 from tqdm import tqdm
 
 
@@ -430,3 +432,57 @@ def evaluate(result_tuple, mode="Default", split_interval=None, save_path=None):
 
             print(f"CSV file saved at {save_path}")
     return output_avg_dict, output_camera_dict, output_datafolder_dict
+
+def extract_black_line(color_line, thres=100):
+    # Input: a color line with alpha channel.
+    # Output: the black line extracted from the color line.
+    processed_img = np.max(color_line[..., :3], axis=2)
+
+    # Create a mask where processed_img > thres
+    mask = processed_img > thres
+
+    # Modify the RGBA values in the mask area
+    color_line[mask] = [255, 255, 255, 0]
+    color_line[...,:3][1-mask] = [0, 0, 0]
+    return color_line
+
+
+def merge_color_line(line_path,colorized_img_path,save_path):
+    # merge the black part of the color line in the line_path with the colorized img in colorized_img_path, then save it.
+    colorized_img = io.imread(colorized_img_path)
+    line_img = io.imread(line_path)
+    line_img = extract_black_line(line_img)
+
+    line_alpha = line_img[..., 3] / 255.0
+    line_rgb = line_img[...,:3]
+    
+    # Convert the colorized image to RGBA if it's not already
+    if colorized_img.shape[2] == 3:
+        colorized_img = np.dstack([colorized_img, np.ones(colorized_img.shape[:2], dtype=np.uint8) * 255])
+    
+    # Identify the [0,0,0,255] regions in the colorized image
+    mask = np.all(colorized_img == [0, 0, 0, 255], axis=-1)
+    
+    # Inpaint the colorized image
+    inpainted_image = 255*inpaint.inpaint_biharmonic(colorized_img[..., :3]/255, mask, channel_axis=-1)
+    inpainted_image_alpha = np.dstack([inpainted_image, colorized_img[..., 3]])
+    
+    # Extract the black line from the line image
+    blended_rgb = line_rgb * line_alpha[..., np.newaxis] + inpainted_image * (1 - line_alpha[..., np.newaxis])
+    final_alpha = np.clip(line_alpha + inpainted_image_alpha[..., 3] * (1 - line_alpha), 0, 1)
+
+    inpainted_image_alpha = np.dstack([blended_rgb, final_alpha * 255])
+    
+    # Save the final image
+    io.imsave(save_path, inpainted_image_alpha.astype(np.uint8), check_contrast=False)
+
+if __name__ == "__main__":
+    # Example file paths
+    line_path = 'dataset/PaintBucket_demo/tangyuan_anime/line/0000.png'
+    colorized_img_path = 'dataset/PaintBucket_demo/tangyuan_anime/tangyuan_anime/0000.png'
+    save_path = 'merged_image.png'
+    
+    # Call the merge_line function
+    merge_color_line(line_path, colorized_img_path, save_path)
+    
+    print(f'Merged image saved to {save_path}')

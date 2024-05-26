@@ -119,7 +119,8 @@ if __name__ == "__main__":
     parser.add_argument("--save_color_seg", action="store_true", help="add this arg to show colorized segment results. It's a must when `trappedball` chosen.")
     parser.add_argument("--use_light_model", action="store_true", help="add this to use light-weighted model on low memory GPU.")
     parser.add_argument("--multi_clip", action="store_true", help="used for multi-clip inference. Set `path` to a folder where each sub-folder is a single clip.")
-    parser.add_argument("--raft_res", type=int, default=320, help="used for multi-clip inference. Set `path` to a folder where each sub-folder is a single clip.")
+    parser.add_argument("--keep_line", action="store_true", help="used for keeping the original line in the final output.")
+    parser.add_argument("--raft_res", type=int, default=320, help="change the resolution for the optical flow estimation. If the performance is bad on your case, you can change this to 640 to have a try.")
 
     args = parser.parse_args()
 
@@ -132,6 +133,7 @@ if __name__ == "__main__":
     use_light_model = args.use_light_model
     multi_clip = args.multi_clip
     raft_resolution= args.raft_res
+    keep_line= args.keep_line
 
     if not skip_seg:
         generate_seg(path, seg_type, radius, save_color_seg, multi_clip)
@@ -168,5 +170,4 @@ if __name__ == "__main__":
     dataloader = data.DataLoader(dataset, batch_size=1)
 
     model_inference = ModelInference(model, dataloader)
-    save_path = path.replace("dataset/test", "results")
-    model_inference.inference_multi_gt(save_path)
+    model_inference.inference_multi_gt(path,keep_line)
