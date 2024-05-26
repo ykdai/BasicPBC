@@ -21,6 +21,7 @@ Colorizing line art is a pivotal task in the production of hand-drawn cel animat
 In this work, we introduce a new learning-based inclusion matching pipeline, which directs the network to comprehend the inclusion relationships between segments. To facilitate the training of our network, we also propose a unique dataset **PaintBucket-Character**. This dataset includes rendered line arts alongside their colorized counterparts, featuring various 3D characters.
 
 ### Update
+- **2024.05.26**: Add Colab demo of BasicPBC.
 - **2024.04.25**: Light-weighted model released.
 - **2024.04.12**: Support multiple ground-truth inference.
 - **2024.04.08**: Model inference updated. Support all resolutions and unclosed line art images.
@@ -28,7 +29,7 @@ In this work, we introduce a new learning-based inclusion matching pipeline, whi
 - **2024.03.29**: This repo is created.
 
 ### TODO
-- [ ] Add google colab inference script.
+- [X] Add google colab inference script.
 - [X] Add trapped-ball segmentation module for unclosed line arts inference.
 - [X] Add a lightweight BasicPBC which can process images in 2K resolution without encountering Out-Of-Memory (OOM) error on 16GB RAM GPU.
 
@@ -120,13 +121,13 @@ Find results under `results/`.
     ```bash
     python inference_line_frames.py --path dataset/test/smoke_explosion/  --mode nearest
     ```
-- `--seg_type` is `default` if not specified. It's fast and simple, but not work if your ***line*** contains unclosed region. `trappedball` is robust to this case(acknowledge <a href="https://github.com/hepesu/LineFiller">@hepesu/LineFiller</a>). To decide which one to use, you can first set `default` together with `--save_color_seg`. It will produce colorized segmentation results. If you find out that some segments are not seperated properly, switch to `trappedball`.
+- `--seg_type` is `default` if not specified. It's fast and simple, but not work if your ***line*** contains unclosed region. `trappedball` is robust to this case(acknowledge <a href="https://github.com/hepesu/LineFiller">@hepesu/LineFiller</a>). To decide which one to use, you can first set `default` together with `--save_color_seg`. It will produce colorized segmentation results. If you find out that some segments are not seperated properly, switch to `trappedball`:
     ```bash
     python inference_line_frames.py --path dataset/test/smoke_explosion/  --seg_type trappedball
     ```
 - `--skip_seg` can help your skip the segmentation part. You can use it when `seg` already exists.
 - `--keep_line` will generate another folder named `[your_clip]_keepline` which merges the original line in the `line` folder with the colorized output. This config is mainly for the line drawn not by the binary pen.
-- `--raft_res` can change the resolution for the optical flow estimation (default is 640). We notice that sometimes the performance is bad due to he wrong optical flow estimation. Thus, if the performance is not satisfied on your case, you can change this to 640 to have a try by using `--raft_res 640`.
+- `--raft_res` can change the resolution for the optical flow estimation (default is 320). We notice that sometimes the performance is bad due to he wrong optical flow estimation. Thus, if the performance is not satisfied on your case, you can change this to 640 to have a try by using `--raft_res 640`.
 - `--use_light_model` will use the light-weighted model for inference. Add this if working on low memory GPU. Notice that this argument may produce poorer results than the base model.
 - `--multi_clip` is used if you would like to inference on many clips at the same time. Put all clips within a single folder under `dataset/test/`, e.g.:
     ```
