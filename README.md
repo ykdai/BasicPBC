@@ -21,7 +21,7 @@ Colorizing line art is a pivotal task in the production of hand-drawn cel animat
 In this work, we introduce a new learning-based inclusion matching pipeline, which directs the network to comprehend the inclusion relationships between segments. To facilitate the training of our network, we also propose a unique dataset **PaintBucket-Character**. This dataset includes rendered line arts alongside their colorized counterparts, featuring various 3D characters.
 
 ### Update
-- **2024.05.26**: Add Colab demo of BasicPBC.
+- **2024.05.26**: Add Colab demo of BasicPBC. <a href="https://colab.research.google.com/drive/1kJKLdFXY0O6jRxQCYS4xjaEcOTu7sLPu?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="google colab logo"></a>
 - **2024.04.25**: Light-weighted model released.
 - **2024.04.12**: Support multiple ground-truth inference.
 - **2024.04.08**: Model inference updated. Support all resolutions and unclosed line art images.
