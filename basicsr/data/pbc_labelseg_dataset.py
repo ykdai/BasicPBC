@@ -224,6 +224,12 @@ class AnimeLabelSegDataset(data.Dataset):
         else:
             recolorized_img = torch.Tensor(0)
 
+
+        # mat_index is like [0, 3, -1, ...]
+        # 0 means 'segment' with value 1 is in the 'segment_ref' with value 0+1 = 1 (value 0 in 'segment' and 'segment_ref' is black line)
+        # 3 means 'segment' with value 2 is in the 'segment_ref' with value 3+1 = 4
+        # -1 means 'segment' with value 3 does not have corresponding label in 'segment_ref'
+
         mat_index = torch.from_numpy(mat_index).float()
 
         return {
