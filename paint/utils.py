@@ -192,14 +192,14 @@ def recolorize_img(img):
     # Recolorize the image using the generated color mapping
     recolored_img = np.zeros_like(img, dtype=np.uint8)
     # Iterate over unique colors and their masks, change color using mask
-    print(len(color_mapping.items()))
+    #print(len(color_mapping.items()))
     for color, new_color in color_mapping.items():
         mask = np.all(img == color, axis=-1)
         recolored_img[mask] = new_color
     
-    image_save = Image.fromarray(recolored_img)
-    path = 'recolorized_image.png'
-    image_save.save(path)
+    #image_save = Image.fromarray(recolored_img)
+    #path = 'recolorized_image.png'
+    #image_save.save(path)
 
     return recolored_img
 

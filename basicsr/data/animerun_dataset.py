@@ -331,7 +331,8 @@ class PaintBucketSegMat(AnimeSegMatDataset):
             gt_root = osp.join(root, character, "gt")
             gt_list = sorted(glob(osp.join(gt_root, "*.png")))
 
-            assert len(line_list) == len(seg_list) == len(gt_list)
+            assert len(line_list) == len(seg_list), 'line number should match the seg number'
+            assert len(line_list) == len(gt_list), 'line number should match the gt number'
 
             L = len(line_list)
             for i in range(L - 1):
