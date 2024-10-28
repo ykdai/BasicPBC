@@ -1,4 +1,4 @@
-# Learning Inclusion Matching for Animation Paint Bucket Colorization
+# Animation Paint Bucket Colorization
 
 [Project Page](https://ykdai.github.io/projects/InclusionMatching) | [Video](https://www.youtube.com/watch?v=nNnPUItGvSo)
 
@@ -14,6 +14,18 @@ This repository provides the official implementation for the following paper:
      <a href="https://li-chongyi.github.io/">Chongyi Li</a>,
      <a href="https://www.mmlab-ntu.com/person/ccloy/">Chen Change Loy</a></div>
 <div>Accepted to <strong>CVPR 2024</strong></div><div><a href=https://arxiv.org/abs/2403.18342> arXiv </a>
+</p>
+
+<p>
+<div><strong>Paint Bucket Colorization Using Anime Character Color Design Sheets</strong></div>
+<div><a href="https://ykdai.github.io/">Yuekun Dai</a>, 
+     <a href="https://github.com/dienachtderwelt">Qinyue Li</a>, 
+     <a href="https://shangchenzhou.com/">Shangchen Zhou</a>,
+     <a href="https://github.com/Luo-Yihang/">Yihang Luo</a>,
+     <a href="https://li-chongyi.github.io/">Chongyi Li</a>,
+     <a href="https://www.mmlab-ntu.com/person/ccloy/">Chen Change Loy</a></div>
+<div> The code and data are coming soon. Please stay tuned. 🤗</div>
+<div><a href="https://arxiv.org/abs/2410.19424"> arXiv </a>
 </p>
 
 ### BasicPBC
