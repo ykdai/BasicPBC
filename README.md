@@ -13,7 +13,7 @@ This repository provides the official implementation for the following paper:
      <a href="https://github.com/dienachtderwelt">Qinyue Li</a>, 
      <a href="https://li-chongyi.github.io/">Chongyi Li</a>,
      <a href="https://www.mmlab-ntu.com/person/ccloy/">Chen Change Loy</a></div>
-<div>Accepted to <strong>CVPR 2024</strong></div><div><a href=https://arxiv.org/abs/2403.18342> arXiv </a>
+<div>Accepted to <strong>CVPR 2024</strong></div><div><a href=https://arxiv.org/abs/2403.18342> arXiv </a> | <a href="https://drive.google.com/file/d/1gIJVKyeIu4PQshZnHG6TWj5kSZjnMb2_/view?usp=sharing"> Dataset </a> 
 </p>
 
 <p>
@@ -24,8 +24,8 @@ This repository provides the official implementation for the following paper:
      <a href="https://github.com/Luo-Yihang/">Yihang Luo</a>,
      <a href="https://li-chongyi.github.io/">Chongyi Li</a>,
      <a href="https://www.mmlab-ntu.com/person/ccloy/">Chen Change Loy</a></div>
-<div> The code and data are coming soon. Please stay tuned. 🤗</div>
-<div><a href="https://arxiv.org/abs/2410.19424"> arXiv </a>
+<div> The code is coming soon. Please stay tuned. 🤗</div>
+<div><a href="https://arxiv.org/abs/2410.19424"> arXiv </a> | <a href="https://drive.google.com/file/d/12fSGMcLsJZdrnAL9JOt8FfRnbLXItaGm/view"> Dataset </a> 
 </p>
 
 ### BasicPBC
@@ -33,6 +33,7 @@ Colorizing line art is a pivotal task in the production of hand-drawn cel animat
 In this work, we introduce a new learning-based inclusion matching pipeline, which directs the network to comprehend the inclusion relationships between segments. To facilitate the training of our network, we also propose a unique dataset **PaintBucket-Character**. This dataset includes rendered line arts alongside their colorized counterparts, featuring various 3D characters.
 
 ### Update
+- **2024.11.12**: Upload new dataset for keyframe colorization: [[Google Drive](https://drive.google.com/file/d/12fSGMcLsJZdrnAL9JOt8FfRnbLXItaGm/view) / [Baidu Netdisk](https://pan.baidu.com/s/1nduYppkGyzY1e7VWFGBFbA?pwd=bpbc)]
 - **2024.05.26**: Add Colab demo of BasicPBC. <a href="https://colab.research.google.com/drive/1kJKLdFXY0O6jRxQCYS4xjaEcOTu7sLPu?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="google colab logo"></a>
 - **2024.04.25**: Light-weighted model released.
 - **2024.04.12**: Support multiple ground-truth inference.
