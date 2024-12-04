@@ -114,7 +114,7 @@ def normalize_keypoints(kpts, image_shape):
 class CLIPEncoder(nn.Module):
     def __init__(self, freeze=True, resolution=None):
         super().__init__()
-        clip_encoder, _, self.preprocess = open_clip.create_model_and_transforms("convnext_large_d_320")
+        clip_encoder, _, self.preprocess = open_clip.create_model_and_transforms("convnext_large_d_320", pretrained="laion2b_s29b_b131k_ft_soup")
         # We just assume preprocess is the same as our proprocess
         visual_model = clip_encoder.visual
         visual_model = list(visual_model.children())[0].children()
