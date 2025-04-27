@@ -2,6 +2,9 @@
 
 .gitignore
 
+basicsr/archs/basicpbc_ref_orig_arch.py
+paint/utils_wip.py
+
 
 ckpt/*
 data
