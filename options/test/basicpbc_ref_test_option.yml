@@ -1,0 +1,73 @@
+# general settings
+
+# TODO Rename
+
+name: pbc_model_ref_distilled
+model_type: PBCModel_ref
+scale: 1
+num_gpu: 1  # set num_gpu: 0 for cpu mode
+manual_seed: 42
+
+# dataset and data loader settings
+datasets:
+  val:
+    name: PaintBucket_Char_test
+    type: PaintBucketRefTagSegDataset
+    split: test
+    root: dataset/test/PaintBucket_Char_v2/
+    hint_name: line_anno
+    skip_character: ["Bocchi", "Ichika"] # skip these characters, because they have mesh clipping
+
+# network structures
+network_g:
+  type: BasicPBC_ref
+  descriptor_dim: 128
+  keypoint_encoder: [32, 64, 128]
+  GNN_layer_num: 9
+  text_loss_weight: 0.1
+
+# path
+path:
+  pretrain_network_g: ckpt/basicpbc_ref.pth
+  strict_load_g: true
+  resume_state: ~
+
+# validation settings
+val:
+  val_freq: !!float 5e4
+  save_img: true
+  save_csv: true
+  accu: true
+  based_on_ref: true
+  stage: end2end
+
+  metrics:
+    acc_s1: # metric name, can be arbitrary
+      type: none
+    acc_thres_s1: # metric name, can be arbitrary
+      type: none
+    pix_acc_s1: # metric name, can be arbitrary
+      type: none
+    pix_acc_wobg_s1: # metric name, can be arbitrary
+      type: none
+    acc: # metric name, can be arbitrary
+      type: none
+    acc_thres: # metric name, can be arbitrary
+      type: none
+    pix_acc: # metric name, can be arbitrary
+      type: none
+    pix_acc_wobg: # metric name, can be arbitrary
+      type: none
+    bmiou: # metric name, can be arbitrary
+      type: none
+    pix_bmiou: # metric name, can be arbitrary
+      type: none
+
+# logging settings
+logger:
+  print_freq: 100
+  save_checkpoint_freq: !!float 5e4
+  use_tb_logger: true
+  wandb:
+    project: ~
+    resume_id: ~

@@ -33,7 +33,7 @@ Colorizing line art is a pivotal task in the production of hand-drawn cel animat
 In this work, we introduce a new learning-based inclusion matching pipeline, which directs the network to comprehend the inclusion relationships between segments. To facilitate the training of our network, we also propose a unique dataset **PaintBucket-Character**. This dataset includes rendered line arts alongside their colorized counterparts, featuring various 3D characters.
 
 ### Update
-- **2025.04.16**: Upload inference code for keyframe colorization.
+- **2025.04.16**: Upload inference code and ckpt for keyframe colorization: [[Google Drive](https://drive.google.com/file/d/1kOqmpZNsntelbB6l_4mWACkEMVsSLDAG/view?usp=sharing) / [Baidu Netdisk](https://pan.baidu.com/s/1MEmsbBVTYG5aoBoPYSWu4A?pwd=pami)]
 - **2024.11.12**: Upload new dataset for keyframe colorization: [[Google Drive](https://drive.google.com/file/d/12fSGMcLsJZdrnAL9JOt8FfRnbLXItaGm/view) / [Baidu Netdisk](https://pan.baidu.com/s/1nduYppkGyzY1e7VWFGBFbA?pwd=bpbc)]
 - **2024.05.26**: Add Colab demo of BasicPBC. <a href="https://colab.research.google.com/drive/1kJKLdFXY0O6jRxQCYS4xjaEcOTu7sLPu?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="google colab logo"></a>
 - **2024.04.25**: Light-weighted model released.
@@ -75,7 +75,7 @@ The details of our dataset can be found at [this page](https://github.com/ykdai/
 
 |     | Google Drive | Baidu Netdisk | Number | Description|
 | :--- | :--: | :----: | :---- | ---- |
-| PaintBucket-Character Train/Test | [link](https://drive.google.com/file/d/1gIJVKyeIu4PQshZnHG6TWj5kSZjnMb2_/view?usp=sharing) | [link](https://pan.baidu.com/s/12AMfqwlPF-7R30RWRdUBfg?pwd=cvpr) | 11,345/3,000 | 3D rendered frames for training and testing. Our dataset is a mere 2GB in size, so feel free to download it and enjoy exploring. 😆😆 |
+| PaintBucket-Character Train/Test | [link](https://drive.google.com/file/d/12fSGMcLsJZdrnAL9JOt8FfRnbLXItaGm/view) | [link](https://pan.baidu.com/s/1nduYppkGyzY1e7VWFGBFbA?pwd=bpbc) | 11,345/3,000 | 3D rendered frames for training and testing. Our dataset is a mere 2GB in size, so feel free to download it and enjoy exploring. 😆😆 |
 | PaintBucket-Real Test            |                              /                               |                              /                               | 200          | Hand-drawn frames for testing.                               |
 
 Due to copyright issues, we do not provide download links for the real hand-drawn dataset. Please contact us through the e-mail if you want to use it or wish to get project files of our dataset. These hand-drawn frames are only for evaluation and not for any commercial activities. 
@@ -88,7 +88,7 @@ You can download the pretrained checkpoints from the following links. Please pla
 | :--- | :-------------: | :-------------: |
 | BasicPBC | [link](https://drive.google.com/file/d/1QOUaulX9-mZo5wyKpWw_9QUKkRwBwMU2/view?usp=sharing)  | [link](https://pan.baidu.com/s/1CCbtoQmzYs8Q2rvSHL9-5w?pwd=cvpr) |
 | BasicPBC-Light | [link](https://drive.google.com/file/d/1Oq_4Kk8AbjmIKOwufYNmRpu9WdasTxiR/view?usp=drive_link)  | [link](https://pan.baidu.com/s/1EwiaORp7I7lWRud1iVlM-w?pwd=cvpr ) |
-
+| BasicPBC-Ref | [link](https://drive.google.com/file/d/1kOqmpZNsntelbB6l_4mWACkEMVsSLDAG/view?usp=sharing)  | [link](https://pan.baidu.com/s/1MEmsbBVTYG5aoBoPYSWu4A?pwd=pami) |
 
 ### Model Inference
 To estimate the colorized frames with our checkpoint trained on PaintBucket-Character, you can run the `basicsr/test.py` by using:

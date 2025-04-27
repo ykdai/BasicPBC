@@ -10,7 +10,7 @@ datasets:
   val:
     name: PaintBucket_Char
     type: PaintBucketSegMat
-    root: dataset/test/PaintBucket_Char/
+    root: dataset/test/PaintBucket_Char_v2/
     dstype: contour
     split: test
     is_png_seg: true
@@ -38,7 +38,6 @@ val:
   val_freq: !!float 5e4
   save_img: true
   save_csv: true
-  accu: true
 
   metrics:
     acc: # metric name

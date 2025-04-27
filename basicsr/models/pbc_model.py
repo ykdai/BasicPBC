@@ -16,7 +16,7 @@ from basicsr.losses import build_loss
 from basicsr.models.sr_model import SRModel
 from basicsr.utils import get_root_logger, set_random_seed
 from basicsr.utils.registry import MODEL_REGISTRY
-from paint.utils import colorize_label_image, dump_json, eval_json_folder, evaluate, load_json, read_img_2_np, recolorize_gt, merge_color_line
+from paint.utils import colorize_label_image, dump_json, eval_json_folder_orig, evaluate, load_json, read_img_2_np, recolorize_gt, merge_color_line
 
 
 @MODEL_REGISTRY.register()
@@ -126,12 +126,12 @@ class PBCModel(SRModel):
         self.net_g.train()
         save_path = osp.join(self.opt["path"]["visualization"], str(current_iter), dataset_name)
         model_inference.inference_frame_by_frame(save_path, save_img)
-        results = eval_json_folder(save_path, gt_folder_path, "")
+        results = eval_json_folder_orig(save_path, gt_folder_path, "")
         if save_csv:
             csv_save_path = os.path.join(save_path, "metrics.csv")
-            avg_dict, _, _ = evaluate(results, mode=dataset_name, save_path=csv_save_path)
+            avg_dict, _, _ = evaluate(results, mode=dataset_name, save_path=csv_save_path,skip_first=True,stage="stage2")
         else:
-            avg_dict, _, _ = evaluate(results, mode=dataset_name)
+            avg_dict, _, _ = evaluate(results, mode=dataset_name,skip_first=True,stage="stage2")
 
         self.metric_results["acc"] = avg_dict["acc"]
         self.metric_results["acc_thres"] = avg_dict["acc_thres"]
