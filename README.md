@@ -24,7 +24,7 @@ This repository provides the official implementation for the following paper:
      <a href="https://github.com/Luo-Yihang/">Yihang Luo</a>,
      <a href="https://li-chongyi.github.io/">Chongyi Li</a>,
      <a href="https://www.mmlab-ntu.com/person/ccloy/">Chen Change Loy</a></div>
-<div> The code is coming soon. Please stay tuned. 🤗</div>
+<div> The code is released now. 🤗</div>
 <div><a href="https://arxiv.org/abs/2410.19424"> arXiv </a> | <a href="https://drive.google.com/file/d/12fSGMcLsJZdrnAL9JOt8FfRnbLXItaGm/view"> Dataset </a> 
 </p>
 
@@ -98,6 +98,10 @@ python basicsr/test.py -opt options/test/basicpbc_pbch_test_option.yml
 Or you can test the lightweight model by:
 ```bash
 python basicsr/test.py -opt options/test/basicpbc_light_test_option.yml
+```
+**New**: To test and evaluate the keyframe colorization model, please run:
+```bash
+python basicsr/test.py -opt options/test/basicpbc_ref_test_option.yml
 ```
 The colorized results will be saved at `results/`.
 
