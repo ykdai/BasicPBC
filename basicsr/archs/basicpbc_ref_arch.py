@@ -356,10 +356,7 @@ class TagFeatureEncoder(nn.Module):
     def __init__(self, enc_dim):
         super().__init__()
         self.fc = nn.Linear(12, enc_dim)
-        text_linear_path="/data/dyk/Segment_Matching/BasicPBC_release/BasicPBC/ckpt/text_linear.pth"
-        loaded_model = torch.load(text_linear_path)
-        self.fc.load_state_dict(loaded_model.state_dict())
-
+        
     def forward(self, x):
         indices = [all_text_labels.index(tag[0]) for tag in x]
         one_hot = torch.nn.functional.one_hot(torch.tensor(indices), num_classes=len(all_text_labels)).float().unsqueeze(0).to(self.fc.weight.device) #B,N,12
