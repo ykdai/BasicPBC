@@ -1,9 +1,43 @@
-# PaintBucket-Character Dataset
+# PaintBucket-Character Dataset v2
 
 <img src="../assets/fig3.jpg" width="100%"/>
+Compared with previous dataset, this version contains more features:
 
+1. For both the training and test, we provide `line_anno`  which represent the line art with shading annotations. To simplify the annotations, we pre-process the line arts and ignore the color lines around the shading annotations.  Each color represents the meaning:
+
+   ```
+   Hightlight:
+   	Hair:   [239, 238, 52]
+   	Skin:   [255, 227, 185] 
+   	Others: [255, 245, 139]
+   Shadow: 
+   	Hair:   [185, 137, 253] 
+   	Skin:   [255, 179, 196] 
+   	Others: [188, 201, 251]
+   
+   ```
+
+2. `ref` contains the color design sheet for the T-pose character from different viewpoints.
+
+3. `colorbook.yml` is the text-color list. A typical text-color setting is like `eyelash on eye: [[39 64 59],[19 44 39],[38 13 18],null]` which means `{Text Description} on {Semantic category}: [highlight color, normal color, shadow color1, shadow color2]`. In this dataset, headwear and beard are also classified as hair. To make it simple, we do not use the shadow color2 in our paper although 2 shadow colors are quite common in [animation industry](https://setteidreams.net/color-designs/):
+
+   <img src="..\assets\text_color_list.png" alt="text_color_list" style="zoom:67%;" />
+
+4. `shadow` indicate the shadow and highlight regions. It is the intermediate data. Each color represents:
+
+   ```
+   Highlight: [250, 250, 250]
+   Normal:    [200, 200, 200] 
+   Shadow:    [100, 100, 100]
+   ```
+
+   
+
+5. **Note**: For certain characters, clipping and non-standard mesh topology can lead to incorrect semantic labels and shadows. To prevent these issues, we do not provide the *line_anno* and *shadow* labels for **Kaya** and **Kita** in the training set, and in the testing set, we exclude them for **Bocchi** and **Ichika**. These 4 characters are not used to train or evaluate the keyframe colorization model. (We just use 10 characters for training and 8 for evaluation for key frame colorization). As these characers can still be useful for training the consecutive frame colorization model, we have kept the remaining parts of these characters in the folder.
 We introduce an innovative dataset named **PaintBucket-Character**. This dataset includes rendered line
 arts alongside their colorized counterparts, featuring various 3D characters including both Japanese and Western cartoon styles.
+
+# PaintBucket-Character Dataset v1
 
 ### Data Download
 
