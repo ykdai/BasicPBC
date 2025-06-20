@@ -1,7 +1,34 @@
 # PaintBucket-Character Dataset v2
 
 <img src="../assets/fig3.jpg" width="100%"/>
-Compared with previous dataset, this version contains more features:
+
+
+### Data Download
+
+Dataset can be downloaded using the following links. 
+
+
+|     | Google Drive | Baidu Netdisk | Number | Description|
+| :--- | :--: | :----: | :---- | ---- |
+| PaintBucket-Character Train/Test | [link](https://drive.google.com/file/d/12fSGMcLsJZdrnAL9JOt8FfRnbLXItaGm/view) | [link](https://pan.baidu.com/s/1nduYppkGyzY1e7VWFGBFbA?pwd=bpbc) | 11,345/3,000 | 3D rendered frames for training and testing. Our dataset is a mere 3GB in size, so feel free to download it and enjoy exploring. 😆😆 |
+| PaintBucket-Real Test            |                              /                               |                              /                               | 200          | Hand-drawn frames for testing.                               |
+
+
+Due to copyright issues, we do not provide download links for the real hand-drawn dataset. Please contact us through the e-mail if you want to use it. These hand-drawn frames are only for evaluation and not for any commercial activities. 
+
+After downloading the dataset, please put the it in `BasicPBC/dataset`. If your folder structure is different, you may need to change the corresponding paths in config files.
+
+```
+BasicPBC
+├── dataset
+    ├── train
+        ├── PaintBucket_Char
+    ├── test
+        ├── PaintBucket_Char
+        ├── PaintBucket_Real
+```
+
+Compared with previous dataset, PaintBucket-Character Dataset v2 contains more features:
 
 1. For both the training and test, we provide `line_anno`  which represent the line art with shading annotations. To simplify the annotations, we pre-process the line arts and ignore the color lines around the shading annotations.  Each color represents the meaning:
 
@@ -39,28 +66,6 @@ arts alongside their colorized counterparts, featuring various 3D characters inc
 
 # PaintBucket-Character Dataset v1
 
-### Data Download
-
-Dataset can be downloaded using the following links. 
-
-|                                  |                         Google Drive                         |                        Baidu Netdisk                         | Number       | Description                                                  |
-| :------------------------------- | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------- | ------------------------------------------------------------ |
-| PaintBucket-Character Train/Test | [link](https://drive.google.com/file/d/1gIJVKyeIu4PQshZnHG6TWj5kSZjnMb2_/view?usp=sharing) | [link](https://pan.baidu.com/s/12AMfqwlPF-7R30RWRdUBfg?pwd=cvpr) | 11,345/3,000 | 3D rendered frames for training and testing. Our dataset is only in 2GB, feel feel to download it and have fun~ |
-| PaintBucket-Real Test            |                              /                               |                              /                               | 200          | Hand-drawn frames for testing.                               |
-
-Due to copyright issues, we do not provide download links for the real hand-drawn dataset. Please contact us through the e-mail if you want to use it. These hand-drawn frames are only for evaluation and not for any commercial activities. 
-
-After downloading the dataset, please put the it in `BasicPBC/dataset`. If your folder structure is different, you may need to change the corresponding paths in config files.
-
-```
-BasicPBC
-├── dataset
-    ├── train
-        ├── PaintBucket_Char
-    ├── test
-        ├── PaintBucket_Char
-        ├── PaintBucket_Real
-```
 
 ### PaintBucket-Character Train
 
