@@ -75,7 +75,7 @@ The details of our dataset can be found at [this page](https://github.com/ykdai/
 
 |     | Google Drive | Baidu Netdisk | Number | Description|
 | :--- | :--: | :----: | :---- | ---- |
-| PaintBucket-Character Train/Test | [link](https://drive.google.com/file/d/12fSGMcLsJZdrnAL9JOt8FfRnbLXItaGm/view) | [link](https://pan.baidu.com/s/1nduYppkGyzY1e7VWFGBFbA?pwd=bpbc) | 11,345/3,000 | 3D rendered frames for training and testing. Our dataset is a mere 2GB in size, so feel free to download it and enjoy exploring. 😆😆 |
+| PaintBucket-Character Train/Test | [link](https://drive.google.com/file/d/12fSGMcLsJZdrnAL9JOt8FfRnbLXItaGm/view) | [link](https://pan.baidu.com/s/1nduYppkGyzY1e7VWFGBFbA?pwd=bpbc) | 11,345/3,000 | 3D rendered frames for training and testing. Our dataset is a mere 3GB in size, so feel free to download it and enjoy exploring. 😆😆 |
 | PaintBucket-Real Test            |                              /                               |                              /                               | 200          | Hand-drawn frames for testing.                               |
 
 Due to copyright issues, we do not provide download links for the real hand-drawn dataset. Please contact us through the e-mail if you want to use it or wish to get project files of our dataset. These hand-drawn frames are only for evaluation and not for any commercial activities. 
