@@ -152,6 +152,7 @@ class PaintBucketInferenceDataset(AnimeInferenceDataset):
         self.root = opt["root"]
         self.multi_clip = opt["multi_clip"] if "multi_clip" in opt else False
         self.mode = opt["mode"] if "mode" in opt else "forward"
+        self.data_list = []
 
         if not self.multi_clip:
             character_paths = [self.root]
@@ -165,40 +166,52 @@ class PaintBucketInferenceDataset(AnimeInferenceDataset):
 
             gt_root = osp.join(character_path, "gt")
             gt_list = sorted(glob(osp.join(gt_root, "*.png")))
-            all_gt = [int(osp.splitext(osp.split(gt_path)[-1])[0]) for gt_path in gt_list]
+            all_gt = [int(osp.splitext(osp.basename(gt))[0]) for gt in gt_list]
 
-            L = len(line_list)
+            frame_to_path = {}
+            frame_ids = []
+
+            for path in line_list:
+                frame_id = int(osp.splitext(osp.basename(path))[0])
+                frame_to_path[frame_id] = path
+                frame_ids.append(frame_id)
+
+            frame_ids.sort()
+
             if self.mode == "forward":
-                index_map = {i: i - 1 for i in range(all_gt[0], L) if i not in all_gt}  # target: ref
-                index_list = list(index_map.keys())
+                index_map = {
+                    fid: fid - 1
+                    for fid in frame_ids
+                    if fid not in all_gt and (fid - 1) in frame_to_path
+                }
             elif self.mode == "nearest":
-                index_map = {i: self._get_ref_frame_id(i, all_gt) for i in range(L) if i not in all_gt}
-                index_list = self._sort_indices(index_map)
+                index_map = {
+                    fid: self._get_ref_frame_id(fid, all_gt)
+                    for fid in frame_ids
+                    if fid not in all_gt
+                }
 
-            for index in index_list:
-                file_name, _ = osp.splitext(line_list[index])
-                line = line_list[index]
+            for fid in index_map:
+                ref = index_map[fid]
+
+                line = frame_to_path[fid]
+                line_ref = frame_to_path[ref]
                 seg = line.replace("line", "seg")
-
-                ref = index_map[index]
-                file_name_ref, _ = osp.splitext(line_list[ref])
-                line_ref = line_list[ref]
                 seg_ref = line_ref.replace("line", "seg")
                 gt_ref = line_ref.replace("line", "gt") if ref in all_gt else None
 
                 data_sample = {
-                    "file_name": file_name,
+                    "file_name": osp.splitext(line)[0],
                     "line": line,
                     "seg": seg,
-                    "file_name_ref": file_name_ref,
+                    "file_name_ref": osp.splitext(line_ref)[0],
                     "line_ref": line_ref,
                     "seg_ref": seg_ref,
                     "gt_ref": gt_ref,
                 }
-                self.data_list += [data_sample]
+                self.data_list.append(data_sample)
 
         print("Length of line frames to be colored:", len(self.data_list))
-
     def _get_ref_frame_id(self, index, all_gt):
         nearest_gt = min(all_gt, key=lambda x: abs(x - index))
         ref_index = index - 1 if nearest_gt < index else index + 1
